@@ -1,14 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "frontend": {
-      "root": "frontend/",
-      "framework": "vite",
-      "rewrites": [
-        { "source": "/(.*)", "destination": "/index.html" }
-      ]
-    }
-  },
+  "framework": null,
+  "installCommand": "npm ci --prefix frontend",
+  "buildCommand": "npm run build --prefix frontend",
+  "outputDirectory": "frontend/dist",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -18,6 +13,9 @@
       "source": "/media/:path*",
       "destination": "https://orhsb-api.onrender.com/media/:path*"
     },
-    { "source": "/(.*)", "destination": { "service": "frontend" } }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
