@@ -9,7 +9,13 @@ from rest_framework.views import APIView
 
 from django.core.exceptions import ValidationError
 
-from api.models import AbonneNewsletter, ContenuEditorial, InscriptionOrdre, Publication
+from api.models import (
+    AbonneNewsletter,
+    CampagneCollecte,
+    ContenuEditorial,
+    InscriptionOrdre,
+    Publication,
+)
 from api.serializers import (
     ContenuEditorialSerializer,
     InscriptionOrdreSerializer,
@@ -35,7 +41,12 @@ class PublicAPIView(APIView):
 class PublicNationalStatsView(PublicAPIView):
 
     def get(self, request):
-        campagne = get_active_campagne()
+        campagne_code = request.query_params.get("campagne")
+        campagne = (
+            CampagneCollecte.objects.filter(code=campagne_code).first()
+            if campagne_code
+            else get_active_campagne()
+        )
         stats = national_stats(campagne)
         return Response(serialize_national_payload(stats))
 

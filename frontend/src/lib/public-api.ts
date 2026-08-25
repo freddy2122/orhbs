@@ -27,8 +27,9 @@ export type PublicPublication = {
   vues: number
 }
 
-export function fetchPublicNationalStats() {
-  return apiFetch<NationalStats>('/api/public/stats/national/')
+export function fetchPublicNationalStats(campagne?: string) {
+  const q = campagne ? `?campagne=${encodeURIComponent(campagne)}` : ''
+  return apiFetch<NationalStats>(`/api/public/stats/national/${q}`)
 }
 
 export function fetchPublicDepartementStats() {
