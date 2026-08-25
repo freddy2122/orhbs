@@ -60,10 +60,16 @@ export type CartographyStructureRow = {
 export type CartographyResponse = {
   campagne: CampagneRef | null
   structures: CartographyStructureRow[]
+  population_density?: {
+    departement: { code: string; nom: string }
+    population: number
+    effectif_total: number
+    ratio_10k: number
+  }[]
 }
 
 export type FormationRecord = {
-  id: number
+  id: number | string
   agent: string
   matricule: string
   diplome: string

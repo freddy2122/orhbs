@@ -8,7 +8,7 @@ import {
 import { useEffect, useState } from 'react'
 import { AlertsBell } from '../components/dashboard/AlertsBell'
 import { LOGOS } from '../constants/institutional'
-import { DASHBOARD_NAV } from '../constants/dashboard'
+import { DASHBOARD_NAV, rolePath } from '../constants/dashboard'
 import { useAuth, useDashboardRole } from '../contexts/AuthContext'
 import { fetchActiveCampagne } from '../lib/collecte-api'
 import { FlagBar } from '../components/ui/FlagBar'
@@ -20,7 +20,7 @@ export function DashboardLayout() {
   const { pathname } = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navItems = DASHBOARD_NAV.filter((item) => item.roles.includes(role))
-  const isActorsSpace = pathname.includes('/dashboard/acteurs')
+  const isActorsSpace = pathname.includes('/acteurs')
 
   const scopeLabel =
     user.profile.structure?.nom ??
@@ -91,10 +91,12 @@ export function DashboardLayout() {
           <ul className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon
+              const path = rolePath(role, item.section)
               return (
-                <li key={item.path}>
+                <li key={path}>
                   <NavLink
-                    to={item.path}
+                    to={path}
+                    end={item.section === ''}
                     onClick={() => setSidebarOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${

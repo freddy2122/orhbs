@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Bell } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import type { DashboardRole } from '../../constants/dashboard'
+import { localizeDashboardHref, type DashboardRole } from '../../constants/dashboard'
 import { useDashboardAlerts } from '../../hooks/useDashboardAlerts'
 import type { DashboardAlert } from '../../types/alerts'
 import { Spinner } from '../ui/Spinner'
@@ -110,7 +110,7 @@ export function AlertsBell({ role, structureId }: { role: DashboardRole | null; 
                 return alert.href ? (
                   <Link
                     key={alert.id}
-                    to={alert.href}
+                    to={role ? localizeDashboardHref(role, alert.href) : alert.href}
                     onClick={() => setOpen(false)}
                     className="mb-2 block last:mb-0 hover:opacity-90"
                   >

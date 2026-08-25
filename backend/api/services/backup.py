@@ -1,4 +1,6 @@
+import gzip
 import os
+import shutil
 import subprocess
 from datetime import datetime
 from typing import Dict, List
@@ -6,6 +8,7 @@ from typing import Dict, List
 from django.conf import settings
 from django.core.management import call_command
 from django.db import connection
+from django.utils import timezone
 
 
 class BackupManager:
@@ -13,63 +16,84 @@ class BackupManager:
 
     @staticmethod
     def create_database_backup() -> Dict:
-        """Crée une sauvegarde de la base de données PostgreSQL."""
+        """Crée une sauvegarde (pg_dump si disponible, sinon dump JSON Django)."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_dir = os.path.join(settings.BASE_DIR, "backups")
         os.makedirs(backup_dir, exist_ok=True)
-        
-        # Récupérer les paramètres de connexion
+
         db_settings = settings.DATABASES["default"]
+        engine = db_settings.get("ENGINE", "")
+        pg_dump = shutil.which("pg_dump")
+
+        if "postgresql" in engine and pg_dump:
+            result = BackupManager._pg_dump_backup(backup_dir, timestamp, db_settings, pg_dump)
+            if result.get("success"):
+                BackupManager._cleanup_old_backups(backup_dir, days=7)
+                return result
+
+        return BackupManager._json_dump_backup(backup_dir, timestamp)
+
+    @staticmethod
+    def _pg_dump_backup(backup_dir: str, timestamp: str, db_settings: Dict, pg_dump: str) -> Dict:
         db_name = db_settings["NAME"]
         db_user = db_settings["USER"]
-        db_password = db_settings["PASSWORD"]
-        db_host = db_settings["HOST"]
-        db_port = db_settings["PORT"]
-        
+        db_password = db_settings.get("PASSWORD") or ""
+        db_host = db_settings.get("HOST") or "localhost"
+        db_port = db_settings.get("PORT") or "5432"
         backup_file = os.path.join(backup_dir, f"orhsb_backup_{timestamp}.sql")
-        
+
         try:
-            # Utiliser pg_dump pour la sauvegarde
             env = os.environ.copy()
             env["PGPASSWORD"] = db_password
-            
             command = [
-                "pg_dump",
+                pg_dump,
                 f"--host={db_host}",
                 f"--port={db_port}",
                 f"--username={db_user}",
                 f"--dbname={db_name}",
                 "--no-password",
                 "--format=plain",
-                "--file=" + backup_file,
+                f"--file={backup_file}",
             ]
-            
             result = subprocess.run(command, env=env, capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                # Compresser le fichier
-                compressed_file = backup_file + ".gz"
-                subprocess.run(["gzip", backup_file], check=True)
-                
-                # Nettoyer les anciennes sauvegardes (garder les 7 derniers jours)
-                BackupManager._cleanup_old_backups(backup_dir, days=7)
-                
-                return {
-                    "success": True,
-                    "backup_file": compressed_file,
-                    "size": os.path.getsize(compressed_file),
-                    "timestamp": timestamp,
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": result.stderr,
-                }
-        except Exception as e:
+            if result.returncode != 0:
+                return {"success": False, "error": result.stderr or "pg_dump a échoué"}
+            compressed_file = backup_file + ".gz"
+            with open(backup_file, "rb") as src, gzip.open(compressed_file, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            os.remove(backup_file)
             return {
-                "success": False,
-                "error": str(e),
+                "success": True,
+                "backup_file": compressed_file,
+                "size": os.path.getsize(compressed_file),
+                "timestamp": timestamp,
+                "format": "sql",
             }
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    @staticmethod
+    def _json_dump_backup(backup_dir: str, timestamp: str) -> Dict:
+        backup_file = os.path.join(backup_dir, f"orhsb_backup_{timestamp}.json")
+        try:
+            with open(backup_file, "w", encoding="utf-8") as handle:
+                call_command("dumpdata", "--natural-foreign", "--natural-primary", stdout=handle)
+            compressed_file = backup_file + ".gz"
+            with open(backup_file, "rb") as src, gzip.open(compressed_file, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            os.remove(backup_file)
+            BackupManager._cleanup_old_backups(backup_dir, days=7)
+            return {
+                "success": True,
+                "backup_file": compressed_file,
+                "size": os.path.getsize(compressed_file),
+                "timestamp": timestamp,
+                "format": "json",
+            }
+        except Exception as exc:
+            if os.path.exists(backup_file):
+                os.remove(backup_file)
+            return {"success": False, "error": str(exc)}
 
     @staticmethod
     def _cleanup_old_backups(backup_dir: str, days: int = 7):
@@ -140,9 +164,11 @@ class BackupManager:
         
         # Statut global
         all_healthy = all(
-            health_status["database"]["status"] == "healthy",
-            health_status["storage"]["status"] in ("healthy", "warning"),
-            health_status["services"]["status"] in ("healthy", "degraded"),
+            [
+                health_status["database"]["status"] == "healthy",
+                health_status["storage"]["status"] in ("healthy", "warning"),
+                health_status["services"]["status"] in ("healthy", "degraded"),
+            ]
         )
         health_status["overall_status"] = "healthy" if all_healthy else "unhealthy"
         

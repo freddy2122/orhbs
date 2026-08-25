@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { PageHeader } from '../../../components/dashboard/PageHeader'
 import { SecureActorsNotice } from '../../../components/dashboard/SecureActorsNotice'
+import { localizeDashboardHref } from '../../../constants/dashboard'
 import { ACTOR_MODULES, getActorModulesForRole } from '../../../constants/healthActors'
 import { useDashboardRole } from '../../../contexts/AuthContext'
 
@@ -40,7 +41,7 @@ export function ActorsHubPage() {
                   {mod.utility}
                 </p>
                 <Link
-                  to={mod.href}
+                  to={localizeDashboardHref(role, mod.href)}
                   className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-health-green group-hover:gap-2.5"
                 >
                   Accéder <ArrowRight className="h-4 w-4" />

@@ -27,6 +27,14 @@ export type NationalStats = {
   dont_femmes: number
   ratio_medecins: number
   ratio_infirmiers: number
+  ratio_sages_femmes?: number
+  ratio_rhs_10k?: number
+  ratio_personnel_qualifie_10k?: number
+  seuil_oms_rhs?: number
+  conforme_oms_rhs?: boolean
+  effectif_public?: number
+  effectif_prive?: number
+  effectif_confessionnel?: number
   population: number
   structures_actives: number
   structures_declarantes: number

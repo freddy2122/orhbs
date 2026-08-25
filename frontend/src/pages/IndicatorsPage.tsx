@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart3, MapPin, Shield, TrendingUp } from 'lucide-react'
 import { ChoroplethMap } from '../components/map/ChoroplethMap'
@@ -5,13 +7,16 @@ import { NationalIndicatorsCharts } from '../components/public/NationalIndicator
 import { KeyFiguresSection } from '../components/sections/KeyFiguresSection'
 import { PageBanner } from '../components/ui/PageBanner'
 import { EmptyState } from '../components/ui/EmptyState'
+import { Spinner } from '../components/ui/Spinner'
 import {
   DENSITY_TREND,
   PROFESSION_DISTRIBUTION,
   SECTOR_DISTRIBUTION,
 } from '../constants/publicSpace'
-import { DEPARTMENTS as HOME_DEPARTMENTS } from '../constants/home'
+import { territoriesFromDepartementStats } from '../lib/map-from-stats'
+import { fetchPublicDepartementStats } from '../lib/public-api'
 import { PUBLIC_DATA_NOTICE, RESTRICTED_DATA_NOTICE } from '../lib/security'
+import type { DepartementStatsRow } from '../types/stats'
 
 const INDICATOR_CATEGORIES = [
   { icon: BarChart3, title: 'Effectifs par profession', description: 'Répartition agrégée par catégorie professionnelle et secteur.' },
@@ -24,6 +29,18 @@ export function IndicatorsPage() {
     DENSITY_TREND.length > 0 ||
     PROFESSION_DISTRIBUTION.length > 0 ||
     SECTOR_DISTRIBUTION.length > 0
+  const [deptRows, setDeptRows] = useState<DepartementStatsRow[]>([])
+  const [mapLoading, setMapLoading] = useState(true)
+
+  useEffect(() => {
+    fetchPublicDepartementStats()
+      .then((data) => setDeptRows(data.departements))
+      .catch(() => setDeptRows([]))
+      .finally(() => setMapLoading(false))
+  }, [])
+
+  const territories = useMemo(() => territoriesFromDepartementStats(deptRows), [deptRows])
+  const hasMapData = deptRows.some((d) => d.totals.effectif_total > 0)
 
   return (
     <main>
@@ -88,14 +105,18 @@ export function IndicatorsPage() {
               Cartographie complète →
             </Link>
           </div>
-          {HOME_DEPARTMENTS.length === 0 ? (
+          {mapLoading ? (
+            <div className="flex justify-center py-12">
+              <Spinner className="h-8 w-8 text-health-green" />
+            </div>
+          ) : !hasMapData ? (
             <EmptyState
               title="Aucune donnée cartographique"
               description="Les données de répartition géographique seront affichées ici après consolidation et validation nationale."
               icon={MapPin}
             />
           ) : (
-            <ChoroplethMap />
+            <ChoroplethMap territories={territories} />
           )}
         </div>
       </section>

@@ -1,11 +1,13 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useState } from 'react'
 import type { DashboardRole } from '../constants/dashboard'
-import { buildAlertsForRole } from '../lib/dashboard-alerts'
+import { buildAlertsForRole, type AdvancedAlertsResponse } from '../lib/dashboard-alerts'
 import {
   fetchDeclarations,
   fetchDepartementStats,
   fetchNationalStats,
 } from '../lib/stats-api'
+import { apiFetch } from '../lib/api-client'
 import type { DashboardAlert } from '../types/alerts'
 import type {
   Declaration,
@@ -22,11 +24,21 @@ type AlertsState = {
 }
 
 function needsStats(role: DashboardRole | null) {
-  return role === 'coordination' || role === 'decideur' || role === 'analyste'
+  return role === 'coordination' || role === 'decideur' || role === 'analyste' || role === 'admin'
 }
 
 function needsDeclarations(role: DashboardRole | null) {
   return role === 'validateur' || role === 'collecteur'
+}
+
+function needsAdvanced(role: DashboardRole | null) {
+  return (
+    role === 'coordination' ||
+    role === 'decideur' ||
+    role === 'analyste' ||
+    role === 'admin' ||
+    role === 'validateur'
+  )
 }
 
 export function useDashboardAlerts(
@@ -52,6 +64,7 @@ export function useDashboardAlerts(
     let national: NationalStats | null = null
     let departements: DepartementStatsResponse | null = null
     let declarations: Declaration[] = []
+    let advanced: AdvancedAlertsResponse | null = null
 
     if (needsStats(role)) {
       tasks.push(
@@ -74,6 +87,14 @@ export function useDashboardAlerts(
       }))
     }
 
+    if (needsAdvanced(role)) {
+      tasks.push(
+        apiFetch<AdvancedAlertsResponse>('/api/alerts/advanced/').then((data) => {
+          advanced = data
+        }),
+      )
+    }
+
     if (!tasks.length) {
       setAlerts([])
       setLoading(false)
@@ -88,6 +109,7 @@ export function useDashboardAlerts(
             departements,
             declarations,
             structureId,
+            advanced,
           }),
         )
       })

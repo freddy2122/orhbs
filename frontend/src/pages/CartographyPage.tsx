@@ -1,20 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Building2, Download, Filter, MapPin, ShieldCheck, X } from 'lucide-react'
+import { Building2, Filter, MapPin, ShieldCheck, X } from 'lucide-react'
 import { ChoroplethMap } from '../components/map/ChoroplethMap'
 import { HealthFacilitiesMap } from '../components/map/HealthFacilitiesMap'
 import { PageBanner } from '../components/ui/PageBanner'
 import { EmptyState } from '../components/ui/EmptyState'
-import { DEPARTMENTS as HOME_DEPARTMENTS } from '../constants/home'
-import {
-  FACILITY_TYPES,
-  filterFacilities,
-  getFacilityById,
-  HEALTH_FACILITIES,
-  type HealthFacility,
-} from '../constants/facilitiesData'
+import { Spinner } from '../components/ui/Spinner'
+import { FACILITY_TYPES, filterFacilities, type HealthFacility } from '../constants/facilitiesData'
 import { getRegistryEntryById } from '../constants/registryData'
+import {
+  facilitiesFromStructureStats,
+  territoriesFromDepartementStats,
+  zonesToCommunes,
+} from '../lib/map-from-stats'
+import {
+  fetchPublicDepartementStats,
+  fetchPublicStructureStats,
+  fetchPublicZoneStats,
+} from '../lib/public-api'
 import { PUBLIC_DATA_NOTICE } from '../lib/security'
+import type { DepartementStatsRow, ZoneStatsRow } from '../types/stats'
 
 export function CartographyPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -23,40 +28,70 @@ export function CartographyPage() {
 
   const [typeFilter, setTypeFilter] = useState<(typeof FACILITY_TYPES)[number]>('Tous')
   const [deptFilter, setDeptFilter] = useState('Tous')
-  const [genderFilter, setGenderFilter] = useState<'Tous' | 'F' | 'M'>('Tous')
   const [selectedId, setSelectedId] = useState<string | null>(structureParam)
   const [annuaireBanner, setAnnuaireBanner] = useState(fromAnnuaire && !!structureParam)
+  const [deptRows, setDeptRows] = useState<DepartementStatsRow[]>([])
+  const [zoneRows, setZoneRows] = useState<ZoneStatsRow[]>([])
+  const [facilities, setFacilities] = useState<HealthFacility[]>([])
+  const [selectedDeptId, setSelectedDeptId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLoading(true)
+    Promise.all([fetchPublicDepartementStats(), fetchPublicStructureStats()])
+      .then(([deptData, structureData]) => {
+        setDeptRows(deptData.departements)
+        setFacilities(facilitiesFromStructureStats(structureData.structures))
+        setError(null)
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (!selectedDeptId) {
+      setZoneRows([])
+      return
+    }
+    fetchPublicZoneStats(selectedDeptId)
+      .then((data) => setZoneRows(data.zones))
+      .catch(() => setZoneRows([]))
+  }, [selectedDeptId])
+
+  const territories = useMemo(() => {
+    const base = territoriesFromDepartementStats(deptRows)
+    if (!selectedDeptId) return base
+    return base.map((t) =>
+      t.id === selectedDeptId ? { ...t, communes: zonesToCommunes(zoneRows) } : t,
+    )
+  }, [deptRows, selectedDeptId, zoneRows])
 
   const departments = useMemo(
-    () => ['Tous', ...new Set(HEALTH_FACILITIES.map((f) => f.dept))],
-    [],
+    () => ['Tous', ...new Set(facilities.map((f) => f.dept))],
+    [facilities],
   )
 
-  const highlightedFacility = structureParam ? getFacilityById(structureParam) : undefined
+  const highlightedFacility = structureParam
+    ? facilities.find((f) => f.id === structureParam)
+    : undefined
   const linkedRegistry = highlightedFacility?.registryId
     ? getRegistryEntryById(highlightedFacility.registryId)
     : undefined
 
   useEffect(() => {
     if (!structureParam) return
-    const facility = getFacilityById(structureParam)
+    const facility = facilities.find((f) => f.id === structureParam)
     if (!facility) return
-
     setSelectedId(structureParam)
     setTypeFilter('Tous')
     setDeptFilter('Tous')
     setAnnuaireBanner(fromAnnuaire)
-
-    const timer = window.setTimeout(() => {
-      document.getElementById('facilities-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 150)
-
-    return () => window.clearTimeout(timer)
-  }, [structureParam, fromAnnuaire])
+  }, [structureParam, fromAnnuaire, facilities])
 
   const filtered = useMemo(
-    () => filterFacilities(HEALTH_FACILITIES, typeFilter, deptFilter),
-    [typeFilter, deptFilter],
+    () => filterFacilities(facilities, typeFilter, deptFilter),
+    [facilities, typeFilter, deptFilter],
   )
 
   const dismissAnnuaireBanner = () => {
@@ -71,6 +106,8 @@ export function CartographyPage() {
     setSearchParams({ structure: facility.id }, { replace: true })
     document.getElementById('facilities-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
+  const hasStats = deptRows.some((d) => d.totals.effectif_total > 0)
 
   return (
     <main>
@@ -132,14 +169,23 @@ export function CartographyPage() {
           <h2 className="mb-6 text-xl font-semibold text-institutional-blue">
             Carte choroplèthe — effectifs par territoire
           </h2>
-          {HOME_DEPARTMENTS.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <Spinner className="h-8 w-8 text-health-green" />
+            </div>
+          ) : error ? (
+            <EmptyState title="Carte indisponible" description={error} icon={MapPin} />
+          ) : !hasStats ? (
             <EmptyState
               title="Aucune donnée cartographique"
               description="Les données de répartition géographique des ressources humaines en santé seront affichées ici après consolidation et validation nationale."
               icon={MapPin}
             />
           ) : (
-            <ChoroplethMap />
+            <ChoroplethMap
+              territories={territories}
+              onSelectDepartment={setSelectedDeptId}
+            />
           )}
         </div>
       </section>
@@ -184,42 +230,28 @@ export function CartographyPage() {
                   <option key={d} value={d}>{d === 'Tous' ? 'Tous départements' : d}</option>
                 ))}
               </select>
-              <select
-                value={genderFilter}
-                onChange={(e) => {
-                  setGenderFilter(e.target.value as 'Tous' | 'F' | 'M')
-                  setSelectedId(null)
-                  setSearchParams({}, { replace: true })
-                }}
-                className="rounded-lg border border-[#dde3ea] px-3 py-2 text-sm"
-              >
-                <option value="Tous">Tous genres</option>
-                <option value="F">Femmes</option>
-                <option value="M">Hommes</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => {
-                  // Export de la carte en PNG (fonctionnalité disponible après installation de html2canvas)
-                  alert('Export PNG/PDF sera disponible après installation de la librairie html2canvas')
-                }}
-                className="inline-flex items-center gap-2 rounded-lg border border-[#e8ecf0] bg-white px-3 py-2 text-sm font-medium text-institutional-blue hover:bg-light-gray"
-              >
-                <Download className="h-4 w-4" /> Exporter
-              </button>
             </div>
           </div>
 
-          <HealthFacilitiesMap
-            typeFilter={typeFilter}
-            deptFilter={deptFilter}
-            selectedId={selectedId}
-            onSelect={(f) => {
-              setSelectedId(f?.id ?? null)
-              if (f) setSearchParams({ structure: f.id }, { replace: true })
-              else setSearchParams({}, { replace: true })
-            }}
-          />
+          {facilities.length === 0 ? (
+            <EmptyState
+              title="Aucune infrastructure publiée"
+              description="Les structures sanitaires apparaîtront ici après validation nationale des déclarations."
+              icon={Building2}
+            />
+          ) : (
+            <HealthFacilitiesMap
+              facilities={facilities}
+              typeFilter={typeFilter}
+              deptFilter={deptFilter}
+              selectedId={selectedId}
+              onSelect={(f) => {
+                setSelectedId(f?.id ?? null)
+                if (f) setSearchParams({ structure: f.id }, { replace: true })
+                else setSearchParams({}, { replace: true })
+              }}
+            />
+          )}
         </div>
       </section>
 
@@ -247,11 +279,6 @@ export function CartographyPage() {
                 <p className="mt-2 text-xs text-dark-text/45">
                   {facility.staffTotal} agents · {facility.services.slice(0, 2).join(', ')}
                 </p>
-                {facility.registryId && (
-                  <span className="mt-2 inline-block text-xs font-medium text-health-green">
-                    Inscrit à l&apos;Ordre ✓
-                  </span>
-                )}
               </button>
             ))}
           </div>

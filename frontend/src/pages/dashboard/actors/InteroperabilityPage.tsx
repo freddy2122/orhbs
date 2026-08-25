@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { Database, RefreshCw, Upload } from 'lucide-react'
 import { PageHeader } from '../../../components/dashboard/PageHeader'

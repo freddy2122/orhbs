@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState } from 'react'
 import {
   Calendar,
@@ -23,6 +24,15 @@ import {
   type CollecteField,
   type StructureOption,
 } from '../../lib/collecte-api'
+import {
+  enqueueOfflineDeclaration,
+  fetchOfflinePack,
+  isOnline,
+  loadOfflinePack,
+  loadOfflineQueue,
+  saveOfflinePack,
+  syncOfflineQueue,
+} from '../../lib/offline'
 import type { Declaration } from '../../types/stats'
 
 const tabs = [
@@ -30,6 +40,7 @@ const tabs = [
   { id: 'history', label: 'Historique', icon: History },
   { id: 'calendar', label: 'Calendrier', icon: Calendar },
   { id: 'upload', label: 'Import Excel', icon: FileSpreadsheet },
+  { id: 'offline', label: 'Hors ligne', icon: CloudOff },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
@@ -76,6 +87,10 @@ export function CollecteDashboardPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [importReport, setImportReport] = useState<string | null>(null)
+  const [online, setOnline] = useState(isOnline())
+  const [queueCount, setQueueCount] = useState(loadOfflineQueue().length)
+  const [packDate, setPackDate] = useState(loadOfflinePack()?.date_export ?? null)
+  const [offlineBusy, setOfflineBusy] = useState(false)
 
   const progress = useCollectionProgress()
   const declarations = useDeclarations()
@@ -121,6 +136,16 @@ export function CollecteDashboardPage() {
   }, [])
 
   useEffect(() => {
+    const update = () => setOnline(isOnline())
+    window.addEventListener('online', update)
+    window.addEventListener('offline', update)
+    return () => {
+      window.removeEventListener('online', update)
+      window.removeEventListener('offline', update)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!structureId || !declarations.data?.length) return
     const existing = declarations.data.find((d) => d.structure.id === structureId)
     if (existing) {
@@ -161,7 +186,15 @@ export function CollecteDashboardPage() {
       setMessage('Brouillon enregistré en base de données.')
       declarations.reload()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Enregistrement impossible.')
+      const text = err instanceof Error ? err.message : 'Enregistrement impossible.'
+      if (!isOnline() || text.includes('joindre')) {
+        enqueueOfflineDeclaration(buildPayload() as { structure_id: number } & Record<string, unknown>)
+        setQueueCount(loadOfflineQueue().length)
+        setMessage('Connexion indisponible — brouillon enregistré hors ligne. Il sera synchronisé à la reconnexion.')
+        setError(null)
+      } else {
+        setError(text)
+      }
     } finally {
       setSaving(false)
     }
@@ -241,8 +274,12 @@ export function CollecteDashboardPage() {
         title="Collecte & saisie de données"
         description="Déclaration RHS par structure — saisie en ligne ou import Excel des fiches agents."
         actions={
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
-            <CloudOff className="h-3.5 w-3.5" /> Données enregistrées en base PostgreSQL
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+            online ? 'bg-health-green/10 text-health-green' : 'bg-amber-50 text-amber-800'
+          }`}>
+            <CloudOff className="h-3.5 w-3.5" />
+            {online ? 'En ligne' : 'Hors ligne'}
+            {queueCount > 0 ? ` · ${queueCount} en attente` : ''}
           </span>
         }
       />
@@ -291,6 +328,12 @@ export function CollecteDashboardPage() {
                 </span>
               )}
             </div>
+
+            <p className="rounded-lg bg-light-gray/70 px-3 py-2 text-xs text-dark-text/65">
+              Cette déclaration compte les <strong>effectifs agrégés</strong> (totaux).
+              Elle ne crée pas de fiches nominatives. Pour voir des agents dans Personnel,
+              ajoutez-les un par un ou importez un Excel (onglet Import Excel).
+            </p>
 
             <div>
               <label className="mb-1 block text-sm font-medium">Structure sanitaire *</label>
@@ -488,6 +531,67 @@ export function CollecteDashboardPage() {
               {importReport}
             </pre>
           )}
+        </div>
+      )}
+
+      {activeTab === 'offline' && (
+        <div className="mx-auto max-w-xl space-y-4 rounded-xl border border-[#e8ecf0] bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-institutional-blue">Collecte hors ligne</h2>
+          <p className="text-sm text-dark-text/60">
+            Téléchargez un pack (structures, déclarations, agents du périmètre) pour travailler sans réseau.
+            Les brouillons non synchronisés restent dans ce navigateur jusqu&apos;à la reconnexion.
+          </p>
+          <p className="text-sm text-dark-text/70">
+            Pack local : {packDate ? new Date(packDate).toLocaleString('fr-FR') : 'aucun'}
+            {' · '}
+            File d&apos;attente : {queueCount} déclaration(s)
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={offlineBusy || !online}
+              onClick={async () => {
+                setOfflineBusy(true)
+                setError(null)
+                try {
+                  const pack = await fetchOfflinePack()
+                  saveOfflinePack(pack)
+                  setPackDate(pack.date_export)
+                  setMessage(`Pack hors ligne enregistré (${pack.structures.length} structure(s), ${pack.declarations.length} déclaration(s)).`)
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Téléchargement du pack impossible.')
+                } finally {
+                  setOfflineBusy(false)
+                }
+              }}
+              className="rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {offlineBusy ? 'Traitement…' : 'Télécharger le pack'}
+            </button>
+            <button
+              type="button"
+              disabled={offlineBusy || !online || queueCount === 0}
+              onClick={async () => {
+                setOfflineBusy(true)
+                setError(null)
+                try {
+                  const result = await syncOfflineQueue()
+                  setQueueCount(loadOfflineQueue().length)
+                  setMessage(
+                    `Synchronisation : ${result.sent} envoyée(s), ${result.errors} erreur(s), ${result.conflicts} conflit(s).`,
+                  )
+                  declarations.reload()
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Synchronisation impossible.')
+                } finally {
+                  setOfflineBusy(false)
+                }
+              }}
+              className="rounded-lg border border-[#dde3ea] px-4 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              Synchroniser la file
+            </button>
+          </div>
         </div>
       )}
     </div>

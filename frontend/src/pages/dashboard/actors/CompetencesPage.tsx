@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { GraduationCap, Stethoscope } from 'lucide-react'
 import { PageHeader } from '../../../components/dashboard/PageHeader'

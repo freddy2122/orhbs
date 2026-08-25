@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   Briefcase,
@@ -17,19 +18,18 @@ import {
 } from 'lucide-react'
 import { PageBanner } from '../components/ui/PageBanner'
 import { EmptyState } from '../components/ui/EmptyState'
+import { Spinner } from '../components/ui/Spinner'
 import {
   getCartographyUrl,
   getRegistryDisplayName,
-  getRegistryEntryById,
   PRACTICE_MODE_LABELS,
-  PUBLIC_REGISTRY,
   REGISTRY_DEPARTMENTS,
   REGISTRY_SPECIALTIES,
   REGISTRY_STATUS_LABELS,
-  searchRegistry,
   type RegistryEntry,
   type RegistryStatus,
 } from '../constants/registryData'
+import { fetchPublicAnnuaire, inscriptionToRegistryEntry } from '../lib/editorial-api'
 
 type SearchType = 'all' | 'medecin' | 'clinique'
 
@@ -217,33 +217,50 @@ export function CompliancePage() {
   const [status, setStatus] = useState<RegistryStatus | 'all'>('all')
   const [searched, setSearched] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [stats, setStats] = useState({ medecins: 0, cliniques: 0, suspendus: 0, total: 0 })
+  const [results, setResults] = useState<RegistryEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searching, setSearching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!registryParam) return
-    const entry = getRegistryEntryById(registryParam)
-    if (!entry) return
-    setQuery(entry.name)
-    setSearchType(entry.type === 'clinique' ? 'clinique' : 'medecin')
-    setSearched(true)
+    fetchPublicAnnuaire()
+      .then((data) => {
+        setStats(data.stats)
+        if (registryParam) {
+          const match = data.resultats.find((row) => String(row.id) === registryParam)
+          if (match) {
+            setResults([inscriptionToRegistryEntry(match)])
+            setQuery(match.nom)
+            setSearchType(match.type_entree)
+            setSearched(true)
+          }
+        }
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
   }, [registryParam])
 
-  const stats = useMemo(() => ({
-    medecins: PUBLIC_REGISTRY.filter((e) => e.type === 'medecin' && e.status === 'inscrit').length,
-    cliniques: PUBLIC_REGISTRY.filter((e) => e.type === 'clinique' && e.status === 'inscrit').length,
-    suspendus: PUBLIC_REGISTRY.filter((e) => e.status === 'suspendu').length,
-  }), [])
-
-  const results = useMemo(() => {
-    if (registryParam) {
-      const entry = getRegistryEntryById(registryParam)
-      return entry ? [entry] : []
-    }
-    return searchRegistry(PUBLIC_REGISTRY, { query, type: searchType, dept, specialty, status })
-  }, [registryParam, query, searchType, dept, specialty, status])
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSearching(true)
     setSearched(true)
+    try {
+      const data = await fetchPublicAnnuaire({
+        q: query,
+        type: searchType,
+        statut: status,
+        departement: dept,
+        specialite: specialty,
+      })
+      setStats(data.stats)
+      setResults(data.resultats.map(inscriptionToRegistryEntry))
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Recherche impossible.')
+    } finally {
+      setSearching(false)
+    }
   }
 
   return (
@@ -284,7 +301,11 @@ export function CompliancePage() {
 
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          {PUBLIC_REGISTRY.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-12"><Spinner className="h-7 w-7 text-health-green" /></div>
+          ) : error && stats.total === 0 ? (
+            <EmptyState title="Annuaire indisponible" description={error} icon={ShieldCheck} />
+          ) : stats.total === 0 ? (
             <EmptyState
               title="Aucune donnée disponible"
               description="L'annuaire public des Ordres professionnels sera accessible ici une fois alimenté par les sources officielles."
@@ -327,7 +348,8 @@ export function CompliancePage() {
               />
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-lg bg-health-green px-5 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]"
+                disabled={searching}
+                className="inline-flex items-center gap-2 rounded-lg bg-health-green px-5 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:opacity-50"
               >
                 <Search className="h-4 w-4" /> Vérifier
               </button>

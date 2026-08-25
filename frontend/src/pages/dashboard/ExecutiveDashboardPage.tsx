@@ -117,22 +117,22 @@ export function ExecutiveDashboardPage() {
                 status="ok"
               />
               <KpiCard
-                label="Ratio médecins / 10 000 hab."
-                value={String(n.ratio_medecins)}
-                trend={`Infirmiers : ${n.ratio_infirmiers}`}
-                status={n.ratio_medecins < 2.3 ? 'alert' : n.ratio_medecins < 4 ? 'warn' : 'ok'}
+                label="Personnel qualifié / 10 000 hab."
+                value={String(n.ratio_personnel_qualifie_10k ?? n.ratio_medecins)}
+                trend={`Seuil OMS 23 · ${n.conforme_oms_rhs ? 'conforme' : 'sous le seuil'}`}
+                status={n.conforme_oms_rhs ? 'ok' : 'alert'}
+              />
+              <KpiCard
+                label="Public / privé"
+                value={`${formatNumber(n.effectif_public ?? 0)} / ${formatNumber(n.effectif_prive ?? 0)}`}
+                trend={`Confessionnel : ${formatNumber(n.effectif_confessionnel ?? 0)}`}
+                status="ok"
               />
               <KpiCard
                 label="Taux de réponse collecte"
                 value={`${n.taux_reponse}%`}
                 trend={`${n.structures_declarantes}/${n.structures_actives} structures`}
                 status={n.taux_reponse < 60 ? 'alert' : n.taux_reponse < 80 ? 'warn' : 'ok'}
-              />
-              <KpiCard
-                label="Départements couverts"
-                value={`${n.departements_couverts} / ${n.departements_total}`}
-                trend="Données validées"
-                status={n.departements_couverts === n.departements_total ? 'ok' : 'warn'}
               />
             </section>
 

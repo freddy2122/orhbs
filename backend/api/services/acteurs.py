@@ -4,26 +4,19 @@ from typing import Optional
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from api.models import AgentSante, CampagneCollecte, DeclarationRHS, ImportFichier, UserProfile
-from api.permissions import declarations_queryset_for_user, get_user_profile, structures_queryset_for_user
+from api.models import CampagneCollecte, DeclarationRHS, Departement, ImportFichier
+from api.permissions import agents_queryset_for_user, declarations_queryset_for_user, structures_queryset_for_user
 from api.services.stats import get_active_campagne
 
 
 def _agents_queryset_for_user(user, campagne: Optional[CampagneCollecte] = None):
-    qs = AgentSante.objects.filter(actif=True).select_related(
+    qs = agents_queryset_for_user(user).select_related(
         "structure",
         "structure__departement",
         "structure__zone_sanitaire",
     )
     if campagne:
         qs = qs.filter(campagne=campagne)
-    profile = get_user_profile(user)
-    if not profile:
-        return qs.none()
-    if profile.scope == UserProfile.Scope.STRUCTURE and profile.structure_id:
-        return qs.filter(structure_id=profile.structure_id)
-    if profile.scope == UserProfile.Scope.DEPARTEMENTAL and profile.departement_id:
-        return qs.filter(structure__departement_id=profile.departement_id)
     return qs
 
 
@@ -235,19 +228,25 @@ def cartography_data(user, campagne: Optional[CampagneCollecte] = None):
                 }
             )
 
-    result = {"campagne": campagne, "structures": rows}
-    
-    # Ajouter les données de densité de population si demandé
-    include_density = True  # Par défaut pour la cartographie
-    if include_density:
-        result["population_density"] = _calculate_population_density()
-    
-    return result
+    densities = []
+    for dept in Departement.objects.all():
+        dept_rows = [r for r in rows if r["departement"]["code"] == dept.code]
+        effectif = sum(r["effectif_total"] for r in dept_rows)
+        densities.append(
+            {
+                "departement": {"code": dept.code, "nom": dept.nom},
+                "population": dept.population,
+                "effectif_total": effectif,
+                "ratio_10k": round((effectif / dept.population) * 10000, 2) if dept.population else 0,
+            }
+        )
+
+    return {"campagne": campagne, "structures": rows, "population_density": densities}
 
 
 def competences_data(user, campagne: Optional[CampagneCollecte] = None):
     campagne = campagne or get_active_campagne()
-    agents = _agents_queryset_for_user(user, campagne).order_by("nom", "prenom")
+    agents = _agents_queryset_for_user(user, campagne).prefetch_related("qualifications").order_by("nom", "prenom")
 
     formations = []
     specialisations = []
@@ -262,6 +261,19 @@ def competences_data(user, campagne: Optional[CampagneCollecte] = None):
                     "diplome": agent.diplome_principal,
                     "ecole": agent.ecole_formation,
                     "annee": agent.annee_diplome,
+                    "structure": agent.structure.nom,
+                    "departement": agent.structure.departement.nom,
+                }
+            )
+        for qual in agent.qualifications.all():
+            formations.append(
+                {
+                    "id": f"q-{qual.id}",
+                    "agent": f"{agent.prenom} {agent.nom}",
+                    "matricule": agent.matricule,
+                    "diplome": qual.intitule,
+                    "ecole": qual.ecole,
+                    "annee": qual.date_obtention.year if qual.date_obtention else None,
                     "structure": agent.structure.nom,
                     "departement": agent.structure.departement.nom,
                 }
@@ -293,19 +305,18 @@ def interoperabilite_data(user):
     imports_qs = ImportFichier.objects.select_related("structure", "importe_par")
     if campagne:
         imports_qs = imports_qs.filter(campagne=campagne)
-    imports = list(imports_qs.order_by("-created_at")[:25])
+    imports_qs = imports_qs.order_by("-created_at")
+    last_import = imports_qs.first()
+    import_ok = imports_qs.filter(statut=ImportFichier.StatutImport.TERMINE).aggregate(
+        total=Coalesce(Sum("lignes_ok"), 0)
+    )["total"]
+    imports = list(imports_qs[:25])
 
     agents_qs = _agents_queryset_for_user(user, campagne)
     total_agents = agents_qs.count()
     excel_agents = agents_qs.exclude(source_fichier="").exclude(
         source_fichier="seed_rhs_data"
     ).count()
-    seed_agents = agents_qs.filter(source_fichier="seed_rhs_data").count()
-
-    last_import = imports.first()
-    import_ok = imports.filter(statut=ImportFichier.StatutImport.TERMINE).aggregate(
-        total=Coalesce(Sum("lignes_ok"), 0)
-    )["total"]
 
     sources = [
         {
@@ -315,14 +326,6 @@ def interoperabilite_data(user):
             "status": "connecté" if len(imports) > 0 else "en attente",
             "last_sync": last_import.created_at.isoformat() if last_import else None,
             "records": excel_agents or int(import_ok),
-        },
-        {
-            "id": "seed",
-            "name": "Données initialisées",
-            "description": "Agents créés par les scripts de démonstration",
-            "status": "connecté" if seed_agents else "en attente",
-            "last_sync": None,
-            "records": seed_agents,
         },
         {
             "id": "dhis2",

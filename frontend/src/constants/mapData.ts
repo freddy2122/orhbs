@@ -85,6 +85,21 @@ export const DEPARTMENTS: TerritoryStats[] = MAP_REGIONS.map((region, index) => 
   path: region.path,
 }))
 
+export const MAP_REGION_CENTROIDS: Record<string, { x: number; y: number }> = {
+  alibori: { x: 220, y: 50 },
+  atacora: { x: 150, y: 70 },
+  borgou: { x: 230, y: 130 },
+  donga: { x: 130, y: 125 },
+  collines: { x: 175, y: 185 },
+  plateau: { x: 230, y: 210 },
+  zou: { x: 190, y: 240 },
+  couffo: { x: 120, y: 185 },
+  atlantique: { x: 85, y: 245 },
+  littoral: { x: 70, y: 285 },
+  oueme: { x: 230, y: 275 },
+  mono: { x: 155, y: 270 },
+}
+
 export const TRAINING_INSTITUTIONS: TrainingInstitution[] = []
 
 export function getStaffCount(

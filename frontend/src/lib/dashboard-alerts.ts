@@ -6,6 +6,27 @@ import type {
   NationalStats,
 } from '../types/stats'
 
+export type AdvancedAlertsResponse = {
+  structures_sans_medecin: {
+    structure: string
+    departement: string
+    jours_sans_medecin: number
+  }[]
+  desequilibres_genre: {
+    type: string
+    nom?: string
+    departement?: string
+    ratio_femmes: number
+  }[]
+  zones_penurie_critique: {
+    zone: string
+    departement: string
+    ratio_medecins_10k: number
+    niveau: string
+  }[]
+  total_alertes: number
+}
+
 export function buildExecutiveAlerts(
   national: NationalStats | null,
   departements: DepartementStatsResponse | null,
@@ -13,6 +34,16 @@ export function buildExecutiveAlerts(
   if (!national) return []
 
   const alerts: DashboardAlert[] = []
+
+  if (national.conforme_oms_rhs === false) {
+    alerts.push({
+      id: 'ratio-oms-23',
+      type: 'critical',
+      message: `Densité du personnel de santé qualifié : ${national.ratio_personnel_qualifie_10k} / 10 000 hab. (seuil OMS : 23).`,
+      date: 'Indicateurs',
+      href: '/dashboard/analyse',
+    })
+  }
 
   if (national.ratio_medecins < 2.3) {
     alerts.push({
@@ -127,6 +158,44 @@ export function buildCollecteurAlerts(
   return alerts
 }
 
+export function buildAdvancedAlerts(data: AdvancedAlertsResponse | null): DashboardAlert[] {
+  if (!data) return []
+  const alerts: DashboardAlert[] = []
+
+  data.structures_sans_medecin.slice(0, 5).forEach((item, index) => {
+    alerts.push({
+      id: `sans-medecin-${index}`,
+      type: 'critical',
+      message: `${item.structure} (${item.departement}) sans médecin depuis ${item.jours_sans_medecin} jours`,
+      date: 'Couverture',
+      href: '/dashboard/acteurs/cartographie',
+    })
+  })
+
+  data.zones_penurie_critique.slice(0, 5).forEach((item, index) => {
+    alerts.push({
+      id: `penurie-${index}`,
+      type: item.niveau === 'critique' ? 'critical' : 'warning',
+      message: `Pénurie ${item.zone} (${item.departement}) — ${item.ratio_medecins_10k} médecins / 10 000 hab.`,
+      date: 'Densité',
+      href: '/dashboard/executif',
+    })
+  })
+
+  data.desequilibres_genre.slice(0, 3).forEach((item, index) => {
+    const nom = item.nom || item.departement || 'territoire'
+    alerts.push({
+      id: `genre-${index}`,
+      type: 'warning',
+      message: `Déséquilibre de genre (${item.ratio_femmes}% de femmes) — ${nom}`,
+      date: 'Genre',
+      href: '/dashboard/acteurs/personnel',
+    })
+  })
+
+  return alerts
+}
+
 export function buildAlertsForRole(
   role: DashboardRole | null,
   data: {
@@ -134,6 +203,7 @@ export function buildAlertsForRole(
     departements: DepartementStatsResponse | null
     declarations: Declaration[]
     structureId?: number | null
+    advanced?: AdvancedAlertsResponse | null
   },
 ): DashboardAlert[] {
   if (!role) return []
@@ -142,9 +212,16 @@ export function buildAlertsForRole(
     case 'coordination':
     case 'decideur':
     case 'analyste':
-      return buildExecutiveAlerts(data.national, data.departements)
+    case 'admin':
+      return [
+        ...buildExecutiveAlerts(data.national, data.departements),
+        ...buildAdvancedAlerts(data.advanced ?? null),
+      ]
     case 'validateur':
-      return buildValidatorAlerts(data.declarations)
+      return [
+        ...buildValidatorAlerts(data.declarations),
+        ...buildAdvancedAlerts(data.advanced ?? null),
+      ]
     case 'collecteur':
       return buildCollecteurAlerts(data.declarations, data.structureId)
     default:

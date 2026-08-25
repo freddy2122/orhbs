@@ -17,6 +17,7 @@ import {
 } from './pages/LegalPages'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { RoleGuard, RoleSpace } from './components/auth/RoleSpace'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { AdminDashboardPage } from './pages/dashboard/AdminDashboardPage'
 import { AnalyseDashboardPage } from './pages/dashboard/AnalyseDashboardPage'
@@ -31,6 +32,7 @@ import { MicroCartographyPage } from './pages/dashboard/actors/MicroCartographyP
 import { PersonnelPage } from './pages/dashboard/actors/PersonnelPage'
 import { PlanificationPage } from './pages/dashboard/actors/PlanificationPage'
 import { LoginPage } from './pages/LoginPage'
+import { NewsletterUnsubscribePage } from './pages/NewsletterUnsubscribePage'
 import { NewsDetailPage, NewsPage } from './pages/NewsPage'
 import { PublicationDetailPage } from './pages/PublicationDetailPage'
 import { PublicationsPage } from './pages/PublicationsPage'
@@ -57,22 +59,142 @@ function App() {
             }
           >
           <Route index element={<DashboardHomePage />} />
-          <Route path="executif" element={<ExecutiveDashboardPage />} />
-          <Route path="collecte" element={<CollecteDashboardPage />} />
-          <Route path="validation" element={<ValidationDashboardPage />} />
-          <Route path="analyse" element={<AnalyseDashboardPage />} />
-          <Route path="admin" element={<AdminDashboardPage />} />
-          <Route path="admin/contenu" element={<AdminDashboardPage />} />
-          <Route path="admin/config" element={<AdminDashboardPage />} />
-          <Route path="admin/audit" element={<AdminDashboardPage />} />
-          <Route path="admin/integrations" element={<AdminDashboardPage />} />
-          <Route path="admin/monitoring" element={<AdminDashboardPage />} />
-          <Route path="acteurs" element={<ActorsHubPage />} />
-          <Route path="acteurs/personnel" element={<PersonnelPage />} />
-          <Route path="acteurs/planification" element={<PlanificationPage />} />
-          <Route path="acteurs/cartographie" element={<MicroCartographyPage />} />
-          <Route path="acteurs/competences" element={<CompetencesPage />} />
-          <Route path="acteurs/interoperabilite" element={<InteroperabilityPage />} />
+          <Route path="executif" element={<DashboardHomePage />} />
+          <Route path="collecte" element={<DashboardHomePage />} />
+          <Route path="validation" element={<DashboardHomePage />} />
+          <Route path="analyse" element={<DashboardHomePage />} />
+          <Route path="acteurs/*" element={<DashboardHomePage />} />
+          <Route path=":acteur" element={<RoleSpace />}>
+            <Route index element={<DashboardHomePage />} />
+            <Route
+              path="executif"
+              element={
+                <RoleGuard allow={['decideur', 'coordination', 'analyste']}>
+                  <ExecutiveDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="collecte"
+              element={
+                <RoleGuard allow={['collecteur', 'validateur', 'coordination']}>
+                  <CollecteDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="validation"
+              element={
+                <RoleGuard allow={['validateur', 'coordination']}>
+                  <ValidationDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="analyse"
+              element={
+                <RoleGuard allow={['analyste', 'partenaire', 'coordination', 'decideur']}>
+                  <AnalyseDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="organisation"
+              element={
+                <RoleGuard allow={['admin']}>
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="contenu"
+              element={
+                <RoleGuard allow={['admin']}>
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="config"
+              element={
+                <RoleGuard allow={['admin']}>
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="audit"
+              element={
+                <RoleGuard allow={['admin']}>
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="integrations"
+              element={
+                <RoleGuard allow={['admin']}>
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="monitoring"
+              element={
+                <RoleGuard allow={['admin']}>
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="acteurs"
+              element={
+                <RoleGuard allow={['coordination', 'analyste', 'validateur', 'collecteur', 'admin', 'decideur']}>
+                  <ActorsHubPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="acteurs/personnel"
+              element={
+                <RoleGuard allow={['coordination', 'analyste', 'validateur', 'collecteur', 'admin', 'decideur']}>
+                  <PersonnelPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="acteurs/planification"
+              element={
+                <RoleGuard allow={['coordination', 'validateur', 'decideur']}>
+                  <PlanificationPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="acteurs/cartographie"
+              element={
+                <RoleGuard allow={['coordination', 'validateur', 'collecteur', 'analyste', 'decideur']}>
+                  <MicroCartographyPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="acteurs/competences"
+              element={
+                <RoleGuard allow={['coordination', 'analyste', 'validateur', 'collecteur', 'partenaire']}>
+                  <CompetencesPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="acteurs/interoperabilite"
+              element={
+                <RoleGuard allow={['coordination', 'admin', 'analyste']}>
+                  <InteroperabilityPage />
+                </RoleGuard>
+              }
+            />
+          </Route>
         </Route>
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
@@ -93,6 +215,7 @@ function App() {
           <Route path="faq" element={<FaqPage />} />
           <Route path="demande-acces" element={<DataAccessPage />} />
           <Route path="inscription-point-focal" element={<FocalPointPage />} />
+          <Route path="newsletter/desabonnement" element={<NewsletterUnsubscribePage />} />
           <Route path="confidentialite" element={<PrivacyPage />} />
           <Route path="mentions-legales" element={<LegalNoticePage />} />
           <Route path="accessibilite" element={<AccessibilityPage />} />

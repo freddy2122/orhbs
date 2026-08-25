@@ -1,16 +1,40 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Download, FileText, Share2, Tag } from 'lucide-react'
-import { PUBLICATIONS } from '../constants/publicationsData'
+import { ArrowLeft, Download, FileText, Tag } from 'lucide-react'
 import { PageBanner } from '../components/ui/PageBanner'
 import { EmptyState } from '../components/ui/EmptyState'
+import { Spinner } from '../components/ui/Spinner'
+import { fetchPublicPublication, publicPublicationDownloadUrl, type PublicPublication } from '../lib/public-api'
 import { PUBLIC_DATA_NOTICE } from '../lib/security'
 
 export function PublicationDetailPage() {
   const { id } = useParams()
-  const pub = PUBLICATIONS.find((p) => p.id === id)
-  const index = PUBLICATIONS.findIndex((p) => p.id === id)
-  const prev = index > 0 ? PUBLICATIONS[index - 1] : null
-  const next = index < PUBLICATIONS.length - 1 ? PUBLICATIONS[index + 1] : null
+  const [pub, setPub] = useState<PublicPublication | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    setLoading(true)
+    fetchPublicPublication(id)
+      .then((data) => {
+        setPub(data)
+        setError(null)
+      })
+      .catch((err: Error) => {
+        setPub(null)
+        setError(err.message)
+      })
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) {
+    return (
+      <main className="flex justify-center py-20">
+        <Spinner className="h-8 w-8 text-health-green" />
+      </main>
+    )
+  }
 
   if (!pub) {
     return (
@@ -18,7 +42,7 @@ export function PublicationDetailPage() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <EmptyState
             title="Aucune publication"
-            description="Cette publication n'existe pas ou n'a pas encore été mise en ligne."
+            description={error || "Cette publication n'existe pas ou n'a pas encore été mise en ligne."}
             icon={FileText}
           />
           <div className="mt-6 text-center">
@@ -29,56 +53,69 @@ export function PublicationDetailPage() {
     )
   }
 
+  const keywords = pub.mot_cles.split(',').map((k) => k.trim()).filter(Boolean)
+  const dateLabel = pub.date_publication
+    ? new Date(pub.date_publication).toLocaleDateString('fr-FR')
+    : pub.annee
+
   return (
     <main>
-      <PageBanner label={pub.type} title={pub.title} description={pub.summary} />
+      <PageBanner label={pub.type_publication_label} title={pub.titre} description={pub.resume} />
 
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <div className="mb-8 flex flex-wrap gap-4 text-sm text-dark-text/60">
-          <span>Publié le {new Date(pub.date).toLocaleDateString('fr-FR')}</span>
+          {dateLabel && <span>Publié le {dateLabel}</span>}
           <span>•</span>
-          <span>{pub.downloads.toLocaleString('fr-FR')} téléchargements</span>
-          <span>•</span>
-          <span className="rounded bg-health-green/10 px-2 py-0.5 text-xs font-medium text-health-green">{pub.theme}</span>
+          <span>{pub.telechargements.toLocaleString('fr-FR')} téléchargements</span>
+          {pub.categorie && (
+            <>
+              <span>•</span>
+              <span className="rounded bg-health-green/10 px-2 py-0.5 text-xs font-medium text-health-green">
+                {pub.categorie.nom}
+              </span>
+            </>
+          )}
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-dark-text/50">Auteurs</h2>
-          <p className="mt-1">{pub.authors.join(', ')}</p>
-        </div>
+        {(pub.auteur_full || pub.auteur) && (
+          <div className="mb-6">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-dark-text/50">Auteur</h2>
+            <p className="mt-1">{pub.auteur_full || pub.auteur}</p>
+          </div>
+        )}
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          {pub.keywords.map((kw) => (
-            <span key={kw} className="inline-flex items-center gap-1 rounded-full bg-light-gray px-3 py-1 text-xs">
-              <Tag className="h-3 w-3" /> {kw}
-            </span>
-          ))}
-        </div>
+        {keywords.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-2">
+            {keywords.map((kw) => (
+              <span key={kw} className="inline-flex items-center gap-1 rounded-full bg-light-gray px-3 py-1 text-xs">
+                <Tag className="h-3 w-3" /> {kw}
+              </span>
+            ))}
+          </div>
+        )}
 
-        <p className="leading-relaxed text-dark-text/80">{pub.summary}</p>
+        {pub.resume && <p className="leading-relaxed text-dark-text/80">{pub.resume}</p>}
+        {pub.contenu && (
+          <div className="mt-6 whitespace-pre-line leading-relaxed text-dark-text/80">{pub.contenu}</div>
+        )}
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]">
-            <Download className="h-4 w-4" /> Télécharger PDF (gratuit)
-          </button>
-          <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-[#dde3ea] px-6 py-3 text-sm font-medium hover:bg-light-gray">
-            <Share2 className="h-4 w-4" /> Partager
-          </button>
-        </div>
+        {pub.fichier_url && (
+          <div className="mt-8">
+            <a
+              href={publicPublicationDownloadUrl(pub.id)}
+              className="inline-flex items-center gap-2 rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]"
+            >
+              <Download className="h-4 w-4" /> Télécharger PDF (gratuit)
+            </a>
+          </div>
+        )}
 
         <p className="mt-6 text-xs text-dark-text/50">{PUBLIC_DATA_NOTICE}</p>
 
-        <nav className="mt-12 flex justify-between border-t border-[#e8ecf0] pt-8">
-          {prev ? (
-            <Link to={`/publications/${prev.id}`} className="flex items-center gap-2 text-sm font-medium text-institutional-blue hover:text-health-green">
-              <ArrowLeft className="h-4 w-4" /> {prev.title.slice(0, 40)}…
-            </Link>
-          ) : <span />}
-          {next && (
-            <Link to={`/publications/${next.id}`} className="flex items-center gap-2 text-sm font-medium text-institutional-blue hover:text-health-green">
-              {next.title.slice(0, 40)}… <ArrowRight className="h-4 w-4" />
-            </Link>
-          )}
+        <nav className="mt-12 border-t border-[#e8ecf0] pt-8">
+          <Link to="/publications" className="inline-flex items-center gap-2 text-sm font-medium text-institutional-blue hover:text-health-green">
+            <ArrowLeft className="h-4 w-4" /> Retour au catalogue
+          </Link>
         </nav>
       </article>
     </main>

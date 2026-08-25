@@ -27,7 +27,7 @@ export function PrivacyPage() {
         <section>
           <h2 className="text-lg font-semibold text-institutional-blue">Vos droits</h2>
           <p className="mt-2 text-sm leading-relaxed text-dark-text/70">
-            Conformément à la législation béninoise sur la protection des données personnelles, vous disposez d&apos;un droit d&apos;accès, de rectification et de suppression. Contact : contact@orhsb.bj
+            Conformément à la législation béninoise sur la protection des données personnelles, vous disposez d&apos;un droit d&apos;accès, de rectification et de suppression. Pour la newsletter, un lien de désabonnement figure dans chaque e-mail. Contact : contact@orhsb.bj
           </p>
         </section>
       </article>

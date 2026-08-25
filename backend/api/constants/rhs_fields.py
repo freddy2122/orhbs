@@ -21,6 +21,9 @@ EXCEL_AGENT_COLUMNS = [
     ("date_prise_service", "Date prise de service (AAAA-MM-JJ)"),
     ("date_fin_contrat", "Date fin contrat (AAAA-MM-JJ)"),
     ("depart_retraite_prevu", "Départ retraite prévu (AAAA-MM-JJ)"),
+    ("salaire", "Salaire mensuel (FCFA)"),
+    ("date_debut_conge", "Début congé (AAAA-MM-JJ)"),
+    ("date_fin_conge", "Fin congé (AAAA-MM-JJ)"),
     ("telephone", "Téléphone"),
     ("email", "E-mail"),
 ]

@@ -1,6 +1,6 @@
 import { ArrowLeft, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { LOGOS } from '../constants/institutional'
 import { FlagBar } from '../components/ui/FlagBar'
 import { PasswordInput } from '../components/ui/PasswordInput'
@@ -8,7 +8,6 @@ import { Spinner } from '../components/ui/Spinner'
 import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
-  const { state } = useLocation()
   const navigate = useNavigate()
   const { login, isAuthenticated, isLoading } = useAuth()
   const [username, setUsername] = useState('')
@@ -16,13 +15,11 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const redirectTo = (state as { from?: string } | null)?.from ?? '/dashboard'
-
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate(redirectTo, { replace: true })
+      navigate('/dashboard', { replace: true })
     }
-  }, [isAuthenticated, isLoading, navigate, redirectTo])
+  }, [isAuthenticated, isLoading, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,8 +27,7 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       await login(username.trim(), password)
-      const from = (state as { from?: string } | null)?.from
-      navigate(from ?? '/dashboard', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connexion impossible.')
     } finally {
@@ -151,7 +147,7 @@ export function LoginPage() {
                   disabled={submitting}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ex. coordination"
+                  placeholder="Votre identifiant"
                   className="w-full rounded-lg border border-[#dde3ea] px-4 py-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-dark-text/40 focus:border-health-green/40 focus:ring-2 focus:ring-health-green/15 disabled:cursor-not-allowed disabled:bg-light-gray/40"
                 />
               </div>
@@ -183,16 +179,9 @@ export function LoginPage() {
             </form>
 
             <p className="mt-6 rounded-lg bg-light-gray/60 px-4 py-3 text-xs text-dark-text/55">
-              Comptes de test (mot de passe : <strong>Orhsb2026!</strong>)
+              Les comptes sont attribués par l&apos;administrateur de la plateforme.
               <br />
-              National — <code className="text-[11px]">coordination</code>,{' '}
-              <code className="text-[11px]">validateur</code>
-              <br />
-              DRH département — <code className="text-[11px]">drh.littoral</code>,{' '}
-              <code className="text-[11px]">drh.oueme</code>,{' '}
-              <code className="text-[11px]">dds.borgou</code>
-              <br />
-              Structure — <code className="text-[11px]">collecteur.chu-mel</code>
+              Contactez le service ORHS pour obtenir vos identifiants et votre accès.
             </p>
 
             <p className="mt-4 text-center text-xs text-dark-text/50 lg:text-left">

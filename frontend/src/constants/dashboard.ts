@@ -34,8 +34,8 @@ export type DashboardRoleMeta = {
 export const DASHBOARD_ROLES: DashboardRoleMeta[] = [
   {
     id: 'admin',
-    label: 'Administrateur système',
-    description: 'Comptes, sécurité, configuration technique',
+    label: 'Administrateur ORHS',
+    description: 'Pilotage, sécurité et paramétrage de la plateforme',
     icon: Settings,
     defaultRoute: '/dashboard/admin',
   },
@@ -44,48 +44,48 @@ export const DASHBOARD_ROLES: DashboardRoleMeta[] = [
     label: 'Coordination ORHS',
     description: 'Secrétariat permanent — pilotage et coordination',
     icon: Shield,
-    defaultRoute: '/dashboard/executif',
+    defaultRoute: '/dashboard/coordination/executif',
   },
   {
     id: 'analyste',
     label: 'Analyste / Statisticien',
     description: 'Production de rapports et analyses',
     icon: BarChart3,
-    defaultRoute: '/dashboard/analyse',
+    defaultRoute: '/dashboard/analyste/analyse',
   },
   {
     id: 'validateur',
     label: 'Validateur',
     description: 'Contrôle qualité des données (DRH, ORHS, DDS)',
     icon: ClipboardCheck,
-    defaultRoute: '/dashboard/validation',
+    defaultRoute: '/dashboard/validateur/validation',
   },
   {
     id: 'collecteur',
     label: 'Collecteur',
     description: 'Saisie et déclaration par structure ou département',
     icon: ClipboardList,
-    defaultRoute: '/dashboard/collecte',
+    defaultRoute: '/dashboard/collecteur/collecte',
   },
   {
     id: 'decideur',
     label: 'Décideur',
     description: 'Ministre, DG, comité d\'orientation — lecture exécutive',
     icon: Crown,
-    defaultRoute: '/dashboard/executif',
+    defaultRoute: '/dashboard/decideur/executif',
   },
   {
     id: 'partenaire',
     label: 'Partenaire accrédité',
     description: 'Chercheurs, ONG, bailleurs — accès lecture restreint',
     icon: FlaskConical,
-    defaultRoute: '/dashboard/analyse',
+    defaultRoute: '/dashboard/partenaire/analyse',
   },
 ]
 
 export type NavItem = {
   label: string
-  path: string
+  section: string
   icon: LucideIcon
   roles: DashboardRole[]
 }
@@ -93,41 +93,59 @@ export type NavItem = {
 export const DASHBOARD_NAV: NavItem[] = [
   {
     label: 'Vue exécutive',
-    path: '/dashboard/executif',
+    section: 'executif',
     icon: Crown,
     roles: ['decideur', 'coordination', 'analyste'],
   },
   {
     label: 'Collecte & saisie',
-    path: '/dashboard/collecte',
+    section: 'collecte',
     icon: ClipboardList,
-    roles: ['collecteur', 'coordination'],
+    roles: ['collecteur', 'validateur', 'coordination'],
   },
   {
     label: 'Validation & qualité',
-    path: '/dashboard/validation',
+    section: 'validation',
     icon: ClipboardCheck,
     roles: ['validateur', 'coordination'],
   },
   {
     label: 'Analyse & rapports',
-    path: '/dashboard/analyse',
+    section: 'analyse',
     icon: BarChart3,
     roles: ['analyste', 'partenaire', 'coordination', 'decideur'],
   },
   {
     label: 'Administration',
-    path: '/dashboard/admin',
+    section: '',
     icon: UserCog,
     roles: ['admin'],
   },
   {
     label: 'Espace acteurs',
-    path: '/dashboard/acteurs',
+    section: 'acteurs',
     icon: Users,
-    roles: ['coordination', 'analyste', 'validateur', 'collecteur'],
+    roles: ['coordination', 'analyste', 'validateur', 'collecteur', 'admin', 'decideur'],
   },
 ]
+
+export const DASHBOARD_ROLE_SLUGS: DashboardRole[] = DASHBOARD_ROLES.map((role) => role.id)
+
+export function isDashboardRole(value: string): value is DashboardRole {
+  return DASHBOARD_ROLE_SLUGS.includes(value as DashboardRole)
+}
+
+export function rolePath(role: DashboardRole, section = '') {
+  return section ? `/dashboard/${role}/${section}` : `/dashboard/${role}`
+}
+
+export function localizeDashboardHref(role: DashboardRole, href: string) {
+  if (!href.startsWith('/dashboard/')) return href
+  const rest = href.slice('/dashboard/'.length)
+  const first = rest.split('/')[0] ?? ''
+  if (isDashboardRole(first)) return href
+  return rolePath(role, rest)
+}
 
 export function getRoleMeta(role: DashboardRole): DashboardRoleMeta {
   return DASHBOARD_ROLES.find((r) => r.id === role) ?? DASHBOARD_ROLES[0]

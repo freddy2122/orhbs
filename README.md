@@ -147,15 +147,24 @@ Application : [http://localhost:5173](http://localhost:5173)
 | `decideur` | Décideur | Vue exécutive |
 | `admin` | Administrateur | Administration |
 
-### Comptes DRH départementaux (1 par département)
+### Comptes DRH départementaux (les 12 départements)
 
-| Identifiant | Exemple |
-|-------------|---------|
-| `drh.littoral` | DRH Littoral |
-| `drh.oueme` | DRH Ouémé |
-| `drh.borgou` | DRH Borgou |
-| `dds.borgou` | DDS Borgou (équivalent validateur dept.) |
-| … | `drh.{code_departement}` pour les 12 départements |
+| Identifiant | Département |
+|-------------|-------------|
+| `drh.alibori` | Alibori |
+| `drh.atacora` | Atacora |
+| `drh.atlantique` | Atlantique |
+| `drh.borgou` | Borgou |
+| `drh.collines` | Collines |
+| `drh.couffo` | Couffo |
+| `drh.donga` | Donga |
+| `drh.littoral` | Littoral |
+| `drh.mono` | Mono |
+| `drh.oueme` | Ouémé |
+| `drh.plateau` | Plateau |
+| `drh.zou` | Zou |
+
+Compte DDS supplémentaire : `dds.borgou` (même rôle / périmètre Borgou).
 
 Connexion : **`/espace-prive`** → redirection automatique vers le dashboard du rôle.
 
@@ -238,7 +247,7 @@ L'import Excel recalcule automatiquement les totaux de la déclaration structure
 
 ```bash
 python manage.py seed_orhsb     # Départements, comptes, 2 structures
-python manage.py seed_rhs_data  # 12 dépts, 24 zones, 26 structures, déclarations
+python manage.py seed_rhs_data  # 12 dépts, 34 zones, HZ/CS/CSCOM/DDS/CHU
 ```
 
 En production : importer le référentiel complet des structures via Django Admin ou script dédié.
@@ -273,9 +282,10 @@ brouillon → soumis → valide_departement → valide_national
                   ↘ rejete → correction → soumis
 ```
 
-### Étape 6 — Publication publique (à venir)
+### Étape 6 — Publication publique
 
-Les stats validées nationalement alimenteront automatiquement le site public (chiffres clés, cartes, publications). **Actuellement le site public affiche des états vides** en attendant le module CMS et l'API publique.
+Les stats au statut `valide_national` sont exposées sans authentification (`/api/public/stats/*`).  
+Le CMS alimente publications, actualités, agenda, FAQ, textes juridiques, formations et annuaire des ordres. Tant qu'aucun contenu n'est publié, le site affiche un état vide explicite.
 
 ---
 
@@ -296,6 +306,19 @@ Les stats validées nationalement alimenteront automatiquement le site public (c
 | `GET /api/stats/departements/` | Stats 12 départements |
 | `GET /api/stats/zones/?departement=` | Par zone sanitaire |
 | `GET /api/stats/structures/` | Par structure |
+
+### API publique (sans authentification)
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/public/stats/national/` | KPI nationaux validés |
+| `GET /api/public/stats/departements/` | Stats par département |
+| `GET /api/public/publications/` | Catalogue publié |
+| `GET /api/public/contenus/?type=` | Actualités, agenda, FAQ, textes, formations |
+| `GET /api/public/annuaire/` | Annuaire des Ordres (si alimenté) |
+| `POST /api/public/newsletter/` | Inscription newsletter |
+| `GET /api/docs/` | Documentation Swagger |
+| `GET /api/schema/` | Schéma OpenAPI |
 
 ### Collecte
 
@@ -354,20 +377,21 @@ Si la base est vide ou non validée, les tableaux affichent **0** et un message 
 | Espace acteurs (5 modules) | ✅ Opérationnel | API acteurs |
 | Alertes cloche | ✅ Opérationnel | API (par rôle) |
 | Admin UI (CRUD users) | ✅ Opérationnel | API admin/users |
-| CMS (actualités, publications) | ✅ Opérationnel | API cms/publications |
-| API publique (sans auth) | ⏳ À faire | Stats agrégées anonymisées |
-| Indicateurs NHWA (OMS) | ⏳ À faire | Calcul automatique |
+| CMS (actualités, publications) | ✅ Opérationnel | API cms/publications + cms/contenus |
+| API publique (sans auth) | ✅ Opérationnel | `/api/public/*` |
+| Indicateurs NHWA (OMS) | ⏳ Partiel | Ratios de densité uniquement |
 | Projections / simulation RH | ✅ Opérationnel | API reports (évolution 5 ans) |
 | DHIS2 / Fonction Publique | ⏳ Non connecté | Passerelles futures |
-| Annuaire Ordres professionnels | ⏳ Vide | Import Ordre des médecins |
+| Annuaire Ordres professionnels | ✅ Prêt (vide) | API publique + CMS, en attente d'import officiel |
 | Cartographie publique | ✅ Opérationnel | Page publique + API |
-| Audit & monitoring | ✅ Opérationnel | API admin/audit + monitoring |
+| Audit & monitoring | ✅ Opérationnel | API + UI admin |
 | Générateur graphiques | ✅ Opérationnel | API reports (modèles personnalisés) |
 | Module mobilité / affectations | ✅ Opérationnel | API admin/mouvements |
-| Export Excel/PDF | ✅ Opérationnel | API export (agents, déclarations) |
-| Alertes email automatiques | ✅ Opérationnel | API alerts + config |
+| Export Excel/PDF | ✅ Opérationnel | API export (agents, déclarations, rapports) |
+| Alertes email automatiques | ✅ Opérationnel | API alerts + config (SMTP en prod) |
 | Mode hors ligne | ✅ Opérationnel | API offline (sync) |
-| Sauvegardes automatiques | ✅ Opérationnel | API monitoring/backup |
+| Sauvegardes automatiques | ✅ Opérationnel | Cron `run_scheduled_jobs` + bouton admin |
+| Documentation API | ✅ Opérationnel | `/api/docs/` (Swagger) |
 | Pyramide des âges | ✅ Opérationnel | API reports (indicateur pyramide) |
 | Alertes structures sans médecin | ✅ Opérationnel | API alerts/advanced |
 | Déséquilibres genre | ✅ Opérationnel | API alerts/advanced |
@@ -376,48 +400,51 @@ Si la base est vide ou non validée, les tableaux affichent **0** et un message 
 
 ## Ce qu'il reste à faire
 
-### Priorité haute
+### Données métier (hors développement)
 
-1. **API publique read-only** — exposer stats agrégées `valide_national` sans authentification pour le site public
-2. **Référentiel structures complet** — import des ~485 structures officielles (au-delà du seed démo)
-3. **Calcul NHWA** — 78 indicateurs OMS à partir des déclarations validées
-4. **Passerelle DHIS2** — synchronisation effectifs agrégés SNIS
-5. **Annuaire conformité** — import registre Ordre National des Médecins
-6. **API Swagger publique** — documentation développeurs
+1. **Référentiel structures complet** — import des ~485 structures officielles (au-delà du seed démo)
+2. **Import annuaire Ordre des médecins** — le module est prêt, les inscriptions officielles manquent
+3. **SMTP de production** — renseigner `EMAIL_HOST` / `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` sur Render
 
-### Priorité moyenne
+### Chantiers fonctionnels restants
 
-7. **Interface frontend pour le CMS** — pages admin pour gérer publications et catégories
-8. **Interface frontend pour les rapports** — sélecteur de modèles et génération interactive
-9. **Interface frontend pour l'audit** — tableau de bord des logs d'audit
-10. **Interface frontend pour le monitoring** — dashboard de santé système
-
-### Priorité basse
-
-11. **Export PDF rapports** — génération PDF avec templates (nécessite librairie PDF)
-12. **Export carte PNG/PDF** — nécessite installation html2canvas/jsPDF
-13. **Tâche cron pour sauvegardes** — configuration automatique des backups quotidiens
-14. **Tâche cron pour alertes email** — envoi automatique des alertes programmées
+4. **Calcul NHWA** — 78 indicateurs OMS (seuls les ratios de densité sont calculés)
+5. **Passerelle DHIS2 / Fonction publique / SNIS** — non commencée
+6. **Carte au niveau commune** — pas de modèle Commune ; le zoom s'arrête aux zones sanitaires
+7. **Export carte PDF dédié** — le PNG SVG est disponible ; le PDF utilise l'impression navigateur
 
 ---
 
-## Déploiement
+## Déploiement (test en ligne)
+
+Le projet est prévu pour **GitHub Actions (CI)** + **Render (API + PostgreSQL)** + **Vercel (frontend)**.
+
+**Base de données : PostgreSQL**, pas MySQL. Sur l’écran Render « Create a new… », choisissez :
+
+1. **Postgres** — base de données (pas Key Value / Redis, pas MySQL)
+2. **Web Services** — API Django (`backend/`)
+3. Plus tard : frontend sur **Vercel** (ou Render Static Sites)
+
+Le CD Render se branche sur GitHub : chaque push sur `main` qui passe le CI peut être déployé automatiquement.
 
 | Composant | Cible | Fichier config |
 |-----------|-------|----------------|
-| Backend | Render | `render.yaml`, `backend/build.sh` |
+| CI | GitHub Actions | `.github/workflows/ci.yml` |
+| Backend | Render Web Service | `render.yaml`, `backend/build.sh` |
 | Frontend | Vercel | `frontend/vercel.json` |
-| Base | PostgreSQL managé | Variable `DATABASE_URL` |
+| Base | Render Postgres | Variable `DATABASE_URL` |
 
 Variables d'environnement :
 
 ```bash
-# Backend
+# Backend (Render)
 DATABASE_URL=postgres://...
-SECRET_KEY=...
+DJANGO_SECRET_KEY=...
 CORS_ALLOWED_ORIGINS=https://votre-frontend.vercel.app
+CSRF_TRUSTED_ORIGINS=https://votre-frontend.vercel.app
+FRONTEND_PUBLIC_URL=https://votre-frontend.vercel.app
 
-# Frontend
+# Frontend (Vercel)
 VITE_API_URL=https://votre-backend.onrender.com
 ```
 
@@ -437,8 +464,15 @@ python manage.py seed_rhs_data
 # Créer un superutilisateur Django
 python manage.py createsuperuser
 
-# Tests backend (si configurés)
+# Tests backend
 python manage.py test
+
+# Documentation API
+# http://localhost:8000/api/docs/
+
+# Alertes email + sauvegarde planifiée
+python manage.py run_scheduled_jobs --dry-run
+# Crontab quotidien (6h) : python manage.py run_scheduled_jobs
 
 # Build production frontend
 cd frontend && npm run build

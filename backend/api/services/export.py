@@ -180,3 +180,52 @@ def export_declarations_excel(declarations):
     )
     response['Content-Disposition'] = f'attachment; filename="declarations_rhs_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
     return response
+
+
+def export_agents_pdf(agents):
+    """Exporte la liste des agents au format PDF."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=24, rightMargin=24)
+    styles = getSampleStyleSheet()
+    story = [
+        Paragraph("ORHS Bénin — Liste des agents de santé", styles["Title"]),
+        Spacer(1, 12),
+    ]
+    rows = [["Matricule", "Nom", "Profession", "Structure", "Département", "Statut"]]
+    for agent in agents[:400]:
+        rows.append(
+            [
+                agent.matricule,
+                f"{agent.prenom} {agent.nom}",
+                agent.profession,
+                agent.structure.nom if agent.structure else "",
+                agent.structure.departement.nom if agent.structure and agent.structure.departement else "",
+                agent.get_statut_agent_display(),
+            ]
+        )
+    table = Table(rows, repeatRows=1)
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F7B4F")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f4f7f5")]),
+            ]
+        )
+    )
+    story.append(table)
+    doc.build(story)
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="agents_rhs_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+    )
+    return response

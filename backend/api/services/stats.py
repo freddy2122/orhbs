@@ -3,7 +3,7 @@ from typing import Optional
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 
-from api.models import CampagneCollecte, DeclarationRHS, Departement, Structure, ZoneSanitaire
+from api.models import AgentSante, CampagneCollecte, DeclarationRHS, Departement, Structure, ZoneSanitaire
 
 
 def get_active_campagne() -> Optional[CampagneCollecte]:
@@ -11,7 +11,9 @@ def get_active_campagne() -> Optional[CampagneCollecte]:
 
 
 def official_declarations(campagne: Optional[CampagneCollecte] = None):
-    qs = DeclarationRHS.objects.filter(DeclarationRHS.official_filter())
+    qs = DeclarationRHS.objects.filter(DeclarationRHS.official_filter()).filter(
+        structure__actif=True,
+    )
     if campagne:
         qs = qs.filter(campagne=campagne)
     return qs.select_related(
@@ -61,12 +63,32 @@ def national_stats(campagne: Optional[CampagneCollecte] = None) -> dict:
             ],
         ).count()
 
+    agents = AgentSante.objects.filter(actif=True)
+    if campagne:
+        agents = agents.filter(campagne=campagne)
+    secteur_counts = {
+        "public": agents.filter(secteur=AgentSante.Secteur.PUBLIC).count(),
+        "prive": agents.filter(secteur=AgentSante.Secteur.PRIVE).count(),
+        "confessionnel": agents.filter(secteur=AgentSante.Secteur.CONFESSIONNEL).count(),
+    }
+    personnel_qualifie = totals["medecins"] + totals["infirmiers"] + totals["sages_femmes"]
+    ratio_rhs = ratio_per_10k(totals["effectif_total"], population)
+    ratio_qualifie = ratio_per_10k(personnel_qualifie, population)
+
     return {
         "campagne": campagne,
         "totals": totals,
         "population": population,
         "ratio_medecins": ratio_per_10k(totals["medecins"], population),
         "ratio_infirmiers": ratio_per_10k(totals["infirmiers"], population),
+        "ratio_sages_femmes": ratio_per_10k(totals["sages_femmes"], population),
+        "ratio_rhs_10k": ratio_rhs,
+        "ratio_personnel_qualifie_10k": ratio_qualifie,
+        "seuil_oms_rhs": 23,
+        "conforme_oms_rhs": ratio_qualifie >= 23,
+        "effectif_public": secteur_counts["public"],
+        "effectif_prive": secteur_counts["prive"],
+        "effectif_confessionnel": secteur_counts["confessionnel"],
         "structures_actives": structures_actives,
         "structures_declarantes": declared,
         "taux_reponse": response_rate,
@@ -81,7 +103,7 @@ def departement_stats(campagne: Optional[CampagneCollecte] = None) -> list:
     official = official_declarations(campagne)
     results = []
 
-    for dept in Departement.objects.all():
+    for dept in Departement.objects.filter(actif=True):
         dept_qs = official.filter(structure__departement=dept)
         totals = aggregate_totals(dept_qs)
         structures_total = Structure.objects.filter(departement=dept, actif=True).count()
@@ -111,7 +133,7 @@ def zone_stats(
 ) -> list:
     campagne = campagne or get_active_campagne()
     official = official_declarations(campagne)
-    zones = ZoneSanitaire.objects.select_related("departement")
+    zones = ZoneSanitaire.objects.filter(actif=True).select_related("departement")
     if departement_code:
         zones = zones.filter(departement__code=departement_code)
 

@@ -1,14 +1,21 @@
-import { Download, Scale } from 'lucide-react'
-import { LEGAL_DOCUMENTS } from '../constants/home'
-import { LEGAL_TEXTS } from '../constants/contentData'
+import { useEffect, useState } from 'react'
+import { Scale } from 'lucide-react'
 import { PageBanner } from '../components/ui/PageBanner'
 import { EmptyState } from '../components/ui/EmptyState'
+import { Spinner } from '../components/ui/Spinner'
+import { fetchPublicContenus, type ContenuEditorial } from '../lib/editorial-api'
 
 export function LegalTextsPage() {
-  const allTexts = [
-    ...LEGAL_TEXTS.map((t) => ({ ...t, source: 'official' as const })),
-    ...LEGAL_DOCUMENTS.map((d) => ({ id: d.id, title: d.title, type: d.type, year: d.date, source: 'orhs' as const })),
-  ]
+  const [items, setItems] = useState<ContenuEditorial[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchPublicContenus('texte_legal')
+      .then(setItems)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <main>
@@ -19,7 +26,11 @@ export function LegalTextsPage() {
       />
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          {allTexts.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-12"><Spinner className="h-7 w-7 text-health-green" /></div>
+          ) : error ? (
+            <EmptyState title="Textes indisponibles" description={error} icon={Scale} />
+          ) : items.length === 0 ? (
             <EmptyState
               title="Aucun texte juridique"
               description="Les décrets, lois et politiques nationales encadrant les ressources humaines en santé seront référencés ici dès leur mise en ligne."
@@ -27,21 +38,18 @@ export function LegalTextsPage() {
             />
           ) : (
             <div className="space-y-3">
-              {allTexts.map((doc) => (
-              <article key={doc.id} className="flex items-center gap-4 rounded-lg border border-[#e8ecf0] bg-white p-5 hover:border-health-green/30">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
-                  <Scale className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <span className="text-xs font-medium uppercase tracking-wider text-health-green">{doc.type}</span>
-                  <h2 className="font-semibold text-institutional-blue">{doc.title}</h2>
-                  <p className="text-xs text-dark-text/50">{doc.year}</p>
-                </div>
-                <button type="button" className="shrink-0 rounded p-2 text-dark-text/40 hover:bg-health-green/10 hover:text-health-green">
-                  <Download className="h-5 w-5" />
-                </button>
-              </article>
-            ))}
+              {items.map((doc) => (
+                <article key={doc.id} className="flex items-center gap-4 rounded-lg border border-[#e8ecf0] bg-white p-5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                    <Scale className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-medium uppercase tracking-wider text-health-green">{doc.categorie || 'Texte'}</span>
+                    <h2 className="font-semibold text-institutional-blue">{doc.titre}</h2>
+                    <p className="text-xs text-dark-text/50">{doc.annee ?? (doc.date_publication ? new Date(doc.date_publication).getFullYear() : '—')}</p>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </div>

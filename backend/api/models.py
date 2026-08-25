@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -11,6 +13,7 @@ class Departement(models.Model):
         default=0,
         help_text="Population estimée pour le calcul des ratios RH.",
     )
+    actif = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["nom"]
@@ -29,6 +32,7 @@ class ZoneSanitaire(models.Model):
         on_delete=models.PROTECT,
         related_name="zones_sanitaires",
     )
+    actif = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["departement__nom", "nom"]
@@ -87,7 +91,7 @@ class Structure(models.Model):
 
 class UserProfile(models.Model):
     class Role(models.TextChoices):
-        ADMIN = "admin", "Administrateur système"
+        ADMIN = "admin", "Administrateur ORHS"
         COORDINATION = "coordination", "Coordination ORHS"
         ANALYSTE = "analyste", "Analyste / Statisticien"
         VALIDATEUR = "validateur", "Validateur"
@@ -287,12 +291,16 @@ class AgentSante(models.Model):
         CONGE = "conge", "Congé longue durée"
         RETRAITE = "retraite", "Retraité"
         SUSPENDU = "suspendu", "Suspendu"
+        INTERIMAIRE = "interimaire", "Intérimaire"
+        REMPLACANT = "remplacant", "Remplaçant"
 
     class TypeContrat(models.TextChoices):
         PERMANENT = "permanent", "Permanent"
         CONTRACTUEL = "contractuel", "Contractuel"
         PRESTATAIRE = "prestataire", "Prestataire"
         STAGIAIRE = "stagiaire", "Stagiaire"
+        INTERIMAIRE = "interimaire", "Intérimaire"
+        REMPLACANT = "remplacant", "Remplaçant"
 
     campagne = models.ForeignKey(
         CampagneCollecte,
@@ -334,9 +342,27 @@ class AgentSante(models.Model):
     date_prise_service = models.DateField(null=True, blank=True)
     date_fin_contrat = models.DateField(null=True, blank=True)
     depart_retraite_prevu = models.DateField(null=True, blank=True)
+    salaire = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Rémunération mensuelle en FCFA.",
+    )
+    date_debut_conge = models.DateField(null=True, blank=True)
+    date_fin_conge = models.DateField(null=True, blank=True)
+    # contact / professional identifiers
     telephone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
+    telephone_pro = models.CharField(max_length=30, blank=True)
+    email_pro = models.EmailField(blank=True)
+    # external identifiers
+    matricule_externe = models.CharField(max_length=100, blank=True)
+    identifiant_rh = models.CharField(max_length=100, blank=True)
+    # administrative status
     nationalite = models.CharField(max_length=80, default="Béninoise")
+    statut_administratif = models.CharField(max_length=40, blank=True)
+    date_suspension = models.DateField(null=True, blank=True)
+    # optional JSON field to keep a simple historique des contrats when needed
+    historique_contrats = models.JSONField(null=True, blank=True, default=list)
     actif = models.BooleanField(default=True)
     source_fichier = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -357,6 +383,35 @@ class AgentSante(models.Model):
         return f"{self.prenom} {self.nom} ({self.matricule})"
 
 
+class AgentQualification(models.Model):
+    agent = models.ForeignKey(
+        "AgentSante",
+        on_delete=models.CASCADE,
+        related_name="qualifications",
+    )
+    intitule = models.CharField(max_length=200)
+    niveau = models.CharField(max_length=120, blank=True)
+    ecole = models.CharField(max_length=200, blank=True)
+    date_obtention = models.DateField(null=True, blank=True)
+    reference = models.CharField(max_length=200, blank=True)
+    ajoute_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="qualifications_ajoutees",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date_obtention", "-created_at"]
+        verbose_name = "Qualification agent"
+        verbose_name_plural = "Qualifications agents"
+
+    def __str__(self):
+        return f"{self.intitule} ({self.agent})"
+
+
 class ImportFichier(models.Model):
     class StatutImport(models.TextChoices):
         EN_COURS = "en_cours", "En cours"
@@ -367,6 +422,8 @@ class ImportFichier(models.Model):
         CampagneCollecte,
         on_delete=models.PROTECT,
         related_name="imports",
+        null=True,
+        blank=True,
     )
     structure = models.ForeignKey(
         Structure,
@@ -375,11 +432,12 @@ class ImportFichier(models.Model):
         on_delete=models.SET_NULL,
         related_name="imports",
     )
-    nom_fichier = models.CharField(max_length=255)
+    nom_fichier = models.CharField(max_length=255, blank=True)
     importe_par = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="imports_fichiers",
     )
     statut = models.CharField(
@@ -544,6 +602,8 @@ class MouvementAgent(models.Model):
         REVOCATION = "revocation", "Révocation"
         DECES = "deces", "Décès"
         RENTREE = "rentree", "Retour de congé/détachement"
+        INTERIM = "interim", "Intérim"
+        REMPLACEMENT = "remplacement", "Remplacement"
 
     agent = models.ForeignKey(
         AgentSante,
@@ -621,6 +681,7 @@ class AlerteEmail(models.Model):
         ENVOYE = "envoye", "Envoyé"
         ERREUR = "erreur", "Erreur d'envoi"
         IGNORE = "ignore", "Ignoré"
+        TRAITE = "traite", "Traité"
 
     type_alerte = models.CharField(max_length=30, choices=TypeAlerte.choices)
     statut = models.CharField(
@@ -653,6 +714,15 @@ class AlerteEmail(models.Model):
     date_envoi = models.DateTimeField(null=True, blank=True)
     erreur_message = models.TextField(blank=True)
     nombre_tentatives = models.PositiveSmallIntegerField(default=0)
+    action_prise = models.TextField(blank=True)
+    date_traitement = models.DateTimeField(null=True, blank=True)
+    traite_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="alertes_traitees",
+    )
     cree_par = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -710,3 +780,202 @@ class ConfigAlerte(models.Model):
 
     def __str__(self) -> str:
         return f"Config {self.get_type_alerte_display()}"
+
+
+class ContenuEditorial(models.Model):
+    class TypeContenu(models.TextChoices):
+        ACTUALITE = "actualite", "Actualité"
+        EVENEMENT = "evenement", "Événement"
+        OPPORTUNITE = "opportunite", "Opportunité"
+        FAQ = "faq", "FAQ"
+        TEXTE_LEGAL = "texte_legal", "Texte juridique"
+        FORMATION = "formation", "Formation / institution"
+
+    type_contenu = models.CharField(max_length=20, choices=TypeContenu.choices)
+    titre = models.CharField(max_length=300)
+    slug = models.SlugField(max_length=300, unique=True)
+    resume = models.TextField(blank=True)
+    contenu = models.TextField(blank=True)
+    categorie = models.CharField(max_length=80, blank=True)
+    lieu = models.CharField(max_length=200, blank=True)
+    organisation = models.CharField(max_length=200, blank=True)
+    date_debut = models.DateField(null=True, blank=True)
+    date_fin = models.DateField(null=True, blank=True)
+    annee = models.PositiveSmallIntegerField(null=True, blank=True)
+    publie = models.BooleanField(default=False)
+    date_publication = models.DateTimeField(null=True, blank=True)
+    cree_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contenus_editoriaux",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date_publication", "-created_at"]
+        verbose_name = "Contenu éditorial"
+        verbose_name_plural = "Contenus éditoriaux"
+        indexes = [
+            models.Index(fields=["type_contenu", "publie"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.get_type_contenu_display()} — {self.titre}"
+
+
+class InscriptionOrdre(models.Model):
+    class TypeEntree(models.TextChoices):
+        MEDECIN = "medecin", "Médecin"
+        CLINIQUE = "clinique", "Clinique"
+
+    class Statut(models.TextChoices):
+        INSCRIT = "inscrit", "Inscrit"
+        SUSPENDU = "suspendu", "Suspendu"
+        RADIE = "radie", "Radié"
+
+    type_entree = models.CharField(max_length=20, choices=TypeEntree.choices)
+    nom = models.CharField(max_length=200)
+    numero_inscription = models.CharField(max_length=80, blank=True)
+    ordre = models.CharField(max_length=150, default="Ordre National des Médecins du Bénin")
+    specialite = models.CharField(max_length=120, blank=True)
+    departement = models.CharField(max_length=80, blank=True)
+    commune = models.CharField(max_length=80, blank=True)
+    statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.INSCRIT)
+    inscrit_depuis = models.DateField(null=True, blank=True)
+    titre = models.CharField(max_length=40, blank=True)
+    nationalite = models.CharField(max_length=80, blank=True)
+    universite = models.CharField(max_length=200, blank=True)
+    annee_diplome = models.PositiveSmallIntegerField(null=True, blank=True)
+    mode_exercice = models.CharField(max_length=20, blank=True)
+    lieu_exercice = models.CharField(max_length=200, blank=True)
+    adresse = models.CharField(max_length=300, blank=True)
+    telephone = models.CharField(max_length=40, blank=True)
+    email = models.EmailField(blank=True)
+    directeur = models.CharField(max_length=200, blank=True)
+    numero_autorisation = models.CharField(max_length=80, blank=True)
+    lits = models.PositiveSmallIntegerField(null=True, blank=True)
+    publie = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["nom"]
+        verbose_name = "Inscription à un ordre"
+        verbose_name_plural = "Inscriptions aux ordres"
+
+    def __str__(self) -> str:
+        return f"{self.nom} ({self.get_statut_display()})"
+
+
+class AbonneNewsletter(models.Model):
+    class Source(models.TextChoices):
+        SITE = "site", "Site public"
+        ADMIN = "admin", "Administration"
+
+    email = models.EmailField(unique=True)
+    actif = models.BooleanField(default=True)
+    source = models.CharField(max_length=20, choices=Source.choices, default=Source.SITE)
+    token_desabonnement = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    date_desabonnement = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Abonné newsletter"
+        verbose_name_plural = "Abonnés newsletter"
+
+    def __str__(self) -> str:
+        return self.email
+
+
+class CampagneNewsletter(models.Model):
+    class Statut(models.TextChoices):
+        BROUILLON = "brouillon", "Brouillon"
+        FILE = "file", "En file d'envoi"
+        ENVOYE = "envoye", "Envoyée"
+        ANNULE = "annule", "Annulée"
+
+    sujet = models.CharField(max_length=200)
+    corps = models.TextField()
+    statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.BROUILLON)
+    destinataires_prevus = models.PositiveIntegerField(default=0)
+    envoyes = models.PositiveIntegerField(default=0)
+    erreurs = models.PositiveIntegerField(default=0)
+    date_envoi = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="campagnes_newsletter",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Campagne newsletter"
+        verbose_name_plural = "Campagnes newsletter"
+
+    def __str__(self) -> str:
+        return self.sujet
+
+
+class EnvoiNewsletter(models.Model):
+    class Statut(models.TextChoices):
+        EN_ATTENTE = "en_attente", "En attente"
+        ENVOYE = "envoye", "Envoyé"
+        ERREUR = "erreur", "Erreur"
+
+    campagne = models.ForeignKey(
+        CampagneNewsletter,
+        on_delete=models.CASCADE,
+        related_name="envois",
+    )
+    abonne = models.ForeignKey(
+        AbonneNewsletter,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="envois",
+    )
+    email = models.EmailField()
+    statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.EN_ATTENTE)
+    erreur_message = models.TextField(blank=True)
+    date_envoi = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Envoi newsletter"
+        verbose_name_plural = "Envois newsletter"
+
+    def __str__(self) -> str:
+        return f"{self.email} — {self.campagne.sujet}"
+
+
+class RapportGenere(models.Model):
+    modele = models.CharField(max_length=50)
+    nom_modele = models.CharField(max_length=200, blank=True)
+    parametres = models.JSONField(default=dict, blank=True)
+    snapshot = models.JSONField(default=dict, blank=True)
+    cree_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rapports_generes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Rapport généré"
+        verbose_name_plural = "Rapports générés"
+
+    def __str__(self) -> str:
+        return f"{self.nom_modele or self.modele} — {self.created_at}"

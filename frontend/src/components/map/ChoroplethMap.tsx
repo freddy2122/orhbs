@@ -6,7 +6,7 @@ import {
   MapPin,
   ZoomIn,
 } from 'lucide-react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   DEPARTMENTS,
   getChoroplethFill,
@@ -76,7 +76,15 @@ function buildTooltip(
   }
 }
 
-export function ChoroplethMap() {
+type ChoroplethMapProps = {
+  territories?: TerritoryStats[]
+  onSelectDepartment?: (id: string | null) => void
+}
+
+export function ChoroplethMap({
+  territories = DEPARTMENTS,
+  onSelectDepartment,
+}: ChoroplethMapProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [viewLevel, setViewLevel] = useState<MapViewLevel>('national')
   const [selectedDeptId, setSelectedDeptId] = useState<string | null>(null)
@@ -87,20 +95,28 @@ export function ChoroplethMap() {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
 
-  const selectedDept = DEPARTMENTS.find((d) => d.id === selectedDeptId)
+  const selectedDept = territories.find((d) => d.id === selectedDeptId)
+
+  useEffect(() => {
+    if (selectedDept?.communes?.length) {
+      setViewLevel('department')
+    }
+  }, [selectedDept?.communes?.length])
 
   const densities = useMemo(() => {
     if (viewLevel === 'national') {
-      return DEPARTMENTS.map((d) => ({
+      return territories.map((d) => ({
         id: d.id,
-        density: getStaffCount(d.sectors, sector, profession) / (d.population / 10000),
+        density: d.population > 0
+          ? getStaffCount(d.sectors, sector, profession) / (d.population / 10000)
+          : getStaffCount(d.sectors, sector, profession),
       }))
     }
     return (selectedDept?.communes ?? []).map((c) => ({
       id: c.id,
       density: getStaffCount(c.sectors, sector, profession) / (c.population / 10000),
     }))
-  }, [viewLevel, selectedDept, sector, profession])
+  }, [viewLevel, selectedDept, sector, profession, territories])
 
   const maxDensity = Math.max(...densities.map((d) => d.density), 1)
 
@@ -109,11 +125,12 @@ export function ChoroplethMap() {
       setSelectedDeptId(dept.id)
       setSelectedCommuneId(null)
       setTooltip(buildTooltip(dept, sector, dept.nationalRank))
+      onSelectDepartment?.(dept.id)
       if (dept.communes?.length) {
         setViewLevel('department')
       }
     },
-    [sector],
+    [sector, onSelectDepartment],
   )
 
   const handleCommuneClick = useCallback(
@@ -217,6 +234,7 @@ export function ChoroplethMap() {
             setSelectedDeptId(null)
             setSelectedCommuneId(null)
             setTooltip(null)
+            onSelectDepartment?.(null)
           }}
           className={`font-medium ${viewLevel === 'national' ? 'text-health-green' : 'text-institutional-blue hover:underline'}`}
         >
@@ -285,7 +303,7 @@ export function ChoroplethMap() {
             </defs>
 
             {viewLevel === 'national' &&
-              DEPARTMENTS.map((dept) => {
+              territories.map((dept) => {
                 if (!dept.path) return null
                 const density = densities.find((d) => d.id === dept.id)?.density ?? 0
                 const desert = isMedicalDesert(dept.sectors, sector, dept.population)

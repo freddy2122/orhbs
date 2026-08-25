@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -9,9 +9,11 @@ import {
   YAxis,
 } from 'recharts'
 import { PageHeader } from '../../components/dashboard/PageHeader'
+import { ReportsPanel } from '../../components/dashboard/ReportsPanel'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { formatNumber, StatsState } from '../../components/dashboard/StatsState'
 import { useDepartementStats, useNationalStats, useZoneStats } from '../../hooks/useStatsData'
+import { fetchReportData, type ReportData } from '../../lib/reports-api'
 
 const analyseTabs = [
   { id: 'overview', label: 'Vue analytique' },
@@ -19,7 +21,7 @@ const analyseTabs = [
   { id: 'crosstab', label: 'Tableaux croisés' },
   { id: 'nhwa', label: 'Indicateurs NHWA' },
   { id: 'simulation', label: 'Projections' },
-  { id: 'drafts', label: 'Brouillons publications' },
+  { id: 'rapports', label: 'Rapports PDF/Excel' },
 ] as const
 
 type TabId = (typeof analyseTabs)[number]['id']
@@ -29,6 +31,26 @@ export function AnalyseDashboardPage() {
   const national = useNationalStats()
   const departements = useDepartementStats()
   const zones = useZoneStats()
+  const [annuel, setAnnuel] = useState<ReportData | null>(null)
+  const [oms, setOms] = useState<ReportData | null>(null)
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportError, setReportError] = useState<string | null>(null)
+
+  const loadReports = () => {
+    setReportLoading(true)
+    setReportError(null)
+    Promise.all([fetchReportData('annuel_orhs'), fetchReportData('oms_unfpa')])
+      .then(([a, o]) => {
+        setAnnuel(a)
+        setOms(o)
+      })
+      .catch((err: Error) => setReportError(err.message))
+      .finally(() => setReportLoading(false))
+  }
+
+  useEffect(() => {
+    loadReports()
+  }, [])
 
   const deptChartData =
     departements.data?.departements.map((d) => ({
@@ -115,10 +137,38 @@ export function AnalyseDashboardPage() {
       )}
 
       {tab === 'charts' && (
-        <EmptyState
-          title="Générateur de graphiques"
-          description="Module en développement — vous pourrez construire des visualisations personnalisées à partir des données validées."
-        />
+        <StatsState loading={reportLoading} error={reportError} onRetry={loadReports}>
+          {(() => {
+            const pyramide = annuel?.indicateurs.pyramide_ages as Record<string, number> | undefined
+            const chartData = pyramide
+              ? Object.entries(pyramide).map(([tranche, effectif]) => ({ tranche, effectif }))
+              : []
+            if (!chartData.length) {
+              return (
+                <EmptyState
+                  title="Aucune pyramide des âges"
+                  description="Renseignez les dates de naissance des agents pour construire le graphique."
+                />
+              )
+            }
+            return (
+              <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
+                <h2 className="mb-4 font-semibold text-institutional-blue">Pyramide des âges (agents en base)</h2>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="tranche" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v) => formatNumber(Number(v))} />
+                      <Bar dataKey="effectif" fill="#0F7B4F" name="Agents" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </section>
+            )
+          })()}
+        </StatsState>
       )}
 
       {tab === 'crosstab' && (
@@ -164,25 +214,96 @@ export function AnalyseDashboardPage() {
       )}
 
       {tab === 'nhwa' && (
-        <EmptyState
-          title="Indicateurs NHWA non calculés"
-          description="Les 78 indicateurs de la National Health Workforce Accounts (OMS) seront générés automatiquement à partir des déclarations validées nationalement."
-        />
+        <StatsState loading={reportLoading} error={reportError} onRetry={loadReports}>
+          {(() => {
+            const ratios = oms?.indicateurs.ratios_oms as Record<string, number | boolean> | undefined
+            if (!ratios) {
+              return (
+                <EmptyState
+                  title="Indicateurs OMS indisponibles"
+                  description="Les ratios médecins/infirmiers pour 10 000 habitants apparaîtront après validation nationale."
+                />
+              )
+            }
+            return (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  { label: 'Personnel qualifié / 10 000 hab. (seuil OMS 23)', value: ratios.ratio_personnel_qualifie, ok: ratios.conforme_oms_rhs },
+                  { label: 'Tous agents / 10 000 hab.', value: ratios.ratio_rhs_10k, ok: Number(ratios.ratio_rhs_10k) >= 23 },
+                  { label: 'Médecins / 10 000 hab.', value: ratios.ratio_medecins, ok: ratios.conforme_medecins },
+                  { label: 'Infirmiers / 10 000 hab.', value: ratios.ratio_infirmiers, ok: ratios.conforme_infirmiers },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
+                    <p className="text-xs uppercase text-dark-text/50">{item.label}</p>
+                    <p className="mt-2 text-3xl font-bold text-institutional-blue">{String(item.value)}</p>
+                    <p className={`mt-2 text-sm ${item.ok ? 'text-health-green' : 'text-amber-700'}`}>
+                      {item.ok ? 'Conforme à la référence OMS' : 'Sous le seuil de référence OMS'}
+                    </p>
+                  </div>
+                ))}
+                <p className="col-span-full text-xs text-dark-text/50">
+                  Densité OMS historique : 23 personnels de santé qualifiés (médecins, infirmiers, sages-femmes) pour 10 000 habitants. Les 78 indicateurs NHWA complets restent à brancher.
+                </p>
+              </div>
+            )
+          })()}
+        </StatsState>
       )}
 
       {tab === 'simulation' && (
-        <EmptyState
-          title="Projections RH non disponibles"
-          description="Le module de simulation (recrutements, retraites, horizon 5-10 ans) sera connecté aux données de planification en base."
-        />
+        <StatsState loading={reportLoading} error={reportError} onRetry={loadReports}>
+          {(() => {
+            const retraites = annuel?.indicateurs.retraites as Record<string, number> | undefined
+            const evolution = annuel?.indicateurs.evolution as { annee: number; effectif: number }[] | undefined
+            if (!evolution?.length && !retraites) {
+              return (
+                <EmptyState
+                  title="Pas encore d'historique de campagnes"
+                  description="Les projections s'appuient sur l'évolution des effectifs validés d'une année sur l'autre."
+                />
+              )
+            }
+            return (
+              <div className="space-y-6">
+                {evolution?.length ? (
+                  <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
+                    <h2 className="mb-4 font-semibold text-institutional-blue">Évolution des effectifs validés</h2>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={evolution}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="annee" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 11 }} />
+                          <Tooltip formatter={(v) => formatNumber(Number(v))} />
+                          <Bar dataKey="effectif" fill="#0B3A66" name="Effectif" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </section>
+                ) : null}
+                {retraites ? (
+                  <section className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
+                    {[
+                      ['6 mois', retraites.prochaines_6_mois],
+                      ['12 mois', retraites.prochaines_12_mois],
+                      ['24 mois', retraites.prochaines_24_mois],
+                      ['5 ans', retraites.prochaines_5_ans],
+                      ['10 ans', retraites.prochaines_10_ans],
+                    ].map(([label, value]) => (
+                      <div key={String(label)} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
+                        <p className="text-xs uppercase text-dark-text/50">Départs retraite {label}</p>
+                        <p className="mt-2 text-2xl font-bold text-institutional-blue">{formatNumber(Number(value ?? 0))}</p>
+                      </div>
+                    ))}
+                  </section>
+                ) : null}
+              </div>
+            )
+          })()}
+        </StatsState>
       )}
 
-      {tab === 'drafts' && (
-        <EmptyState
-          title="Aucun brouillon de publication"
-          description="Les rapports en cours de rédaction par l'équipe analyse apparaîtront ici."
-        />
-      )}
+      {tab === 'rapports' && <ReportsPanel />}
     </div>
   )
 }

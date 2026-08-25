@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-hooks/set-state-in-effect */
 import {
   createContext,
   useCallback,
@@ -15,9 +17,8 @@ import {
 import {
   clearTokens,
   fetchCurrentUser,
-  getAccessToken,
   loginRequest,
-  setTokens,
+  logoutRequest,
 } from '../lib/auth-api'
 import type { AuthUser } from '../types/auth'
 
@@ -38,11 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const loadUser = useCallback(async () => {
-    if (!getAccessToken()) {
-      setUser(null)
-      setIsLoading(false)
-      return
-    }
     try {
       const current = await fetchCurrentUser()
       setUser(current)
@@ -60,11 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const data = await loginRequest(username, password)
-    setTokens(data.access, data.refresh)
     setUser(data.user)
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await logoutRequest()
     clearTokens()
     setUser(null)
   }, [])

@@ -10,6 +10,7 @@ from openpyxl import Workbook, load_workbook
 
 from api.constants.rhs_fields import EXCEL_AGENT_COLUMNS
 from api.models import AgentSante, CampagneCollecte, ImportFichier, Structure
+from api.permissions import structures_queryset_for_user
 from api.services.declaration_sync import sync_declaration_from_agents
 
 
@@ -21,27 +22,30 @@ def generate_agent_template() -> BytesIO:
     ws.append(headers)
     ws.append(
         [
-            "MS-2024-00001",
-            "Agossa",
-            "Jean-Baptiste",
+            "MS-AAAA-00000",
+            "NOM",
+            "PRENOM",
             "M",
-            "1985-03-15",
-            "Médecin spécialiste",
-            "Médecin spécialiste",
-            "Chirurgie générale",
+            "1980-01-01",
+            "Médecin généraliste",
+            "Médecin généraliste",
+            "",
             "Doctorat en Médecine",
-            "UAC",
+            "Établissement de formation",
             "2010",
             "public",
             "permanent",
             "actif",
-            "chu-mel",
-            "Chirurgien",
-            "2012-09-01",
+            "code-structure",
+            "Poste occupé",
+            "2015-01-01",
             "",
-            "2045-03-15",
-            "+22990000000",
-            "agent@example.bj",
+            "2045-01-01",
+            "",
+            "",
+            "",
+            "",
+            "",
         ]
     )
     buffer = BytesIO()
@@ -145,6 +149,7 @@ def import_agents_excel(
         ok = 0
         total = 0
         structures_touched = set()
+        allowed_ids = set(structures_queryset_for_user(user).values_list("id", flat=True))
 
         with transaction.atomic():
             for line_no, row in enumerate(rows[1:], start=2):
@@ -171,6 +176,9 @@ def import_agents_excel(
                     continue
 
                 if structure and struct.id != structure.id:
+                    errors.append({"ligne": line_no, "erreur": "Structure hors périmètre autorisé."})
+                    continue
+                if struct.id not in allowed_ids:
                     errors.append({"ligne": line_no, "erreur": "Structure hors périmètre autorisé."})
                     continue
 
@@ -202,6 +210,9 @@ def import_agents_excel(
                     "date_prise_service": _parse_date(cell("date_prise_service")),
                     "date_fin_contrat": _parse_date(cell("date_fin_contrat")),
                     "depart_retraite_prevu": _parse_date(cell("depart_retraite_prevu")),
+                    "salaire": _parse_int(cell("salaire")),
+                    "date_debut_conge": _parse_date(cell("date_debut_conge")),
+                    "date_fin_conge": _parse_date(cell("date_fin_conge")),
                     "telephone": str(cell("telephone") or "").strip(),
                     "email": str(cell("email") or "").strip(),
                     "source_fichier": log.nom_fichier,

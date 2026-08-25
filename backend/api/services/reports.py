@@ -29,12 +29,12 @@ class ReportGenerator:
         "annuel_orhs": {
             "nom": "Rapport annuel ORHS",
             "description": "Rapport annuel de l'Observatoire des Ressources Humaines en Santé",
-            "indicateurs": ["effectifs", "evolution", "pyramide_ages", "couverture", "specialites"],
+            "indicateurs": ["effectifs", "evolution", "pyramide_ages", "couverture", "specialites", "retraites"],
         },
         "oms_unfpa": {
             "nom": "Rapport partenaires OMS/UNFPA",
             "description": "Rapport standardisé pour les partenaires internationaux",
-            "indicateurs": ["effectifs", "ratios_oms", "couverture", "disparites"],
+            "indicateurs": ["effectifs", "ratios_oms", "couverture", "disparites", "specialites"],
         },
         "cartographique": {
             "nom": "Rapport cartographique",
@@ -206,6 +206,8 @@ class ReportGenerator:
             "prochaines_6_mois": qs.filter(depart_retraite_prevu__lte=limit_6_mois).count(),
             "prochaines_12_mois": qs.filter(depart_retraite_prevu__lte=limit_12_mois).count(),
             "prochaines_24_mois": qs.filter(depart_retraite_prevu__lte=limit_24_mois).count(),
+            "prochaines_5_ans": qs.filter(depart_retraite_prevu__lte=today + timedelta(days=5 * 365)).count(),
+            "prochaines_10_ans": qs.filter(depart_retraite_prevu__lte=today + timedelta(days=10 * 365)).count(),
         }
 
     @staticmethod
@@ -299,26 +301,72 @@ class ReportGenerator:
         totals = qs.aggregate(
             medecins=Coalesce(Sum("medecins"), 0),
             infirmiers=Coalesce(Sum("infirmiers"), 0),
+            sages_femmes=Coalesce(Sum("sages_femmes"), 0),
+            effectif_total=Coalesce(Sum("effectif_total"), 0),
         )
 
         ratio_medecins = (totals["medecins"] / population * 10000) if population > 0 else 0
         ratio_infirmiers = (totals["infirmiers"] / population * 10000) if population > 0 else 0
+        personnel_qualifie = totals["medecins"] + totals["infirmiers"] + totals["sages_femmes"]
+        ratio_qualifie = (personnel_qualifie / population * 10000) if population > 0 else 0
+        ratio_rhs = (totals["effectif_total"] / population * 10000) if population > 0 else 0
 
         return {
             "population": population,
             "ratio_medecins_10k": round(ratio_medecins, 2),
             "ratio_infirmiers_10k": round(ratio_infirmiers, 2),
+            "ratio_rhs_10k": round(ratio_rhs, 2),
+            "ratio_personnel_qualifie_10k": round(ratio_qualifie, 2),
             "norme_oms_medecins": 2.3,
+            "norme_oms_rhs": 23,
             "conforme_medecins": ratio_medecins >= 2.3,
+            "conforme_oms_rhs": ratio_qualifie >= 23,
         }
 
     @staticmethod
     def _indicateur_specialites(qs):
-        """Indicateur par spécialité médicale."""
-        # Utiliser les données des déclarations pour les spécialités
-        return {
+        """Effectifs par spécialité (déclarations + agents) et zones sans spécialité clé."""
+        from django.db.models import Count
+
+        declaration_counts = {
             "medecins_generalistes": qs.aggregate(total=Coalesce(Sum("medecins_generalistes"), 0))["total"],
             "medecins_specialistes": qs.aggregate(total=Coalesce(Sum("medecins_specialistes"), 0))["total"],
+        }
+        specialites_cles = [
+            "Médecine générale",
+            "Pédiatrie",
+            "Chirurgie",
+            "Gynécologie",
+            "Cardiologie",
+        ]
+        agents = AgentSante.objects.filter(actif=True, specialite__gt="")
+        par_specialite = list(
+            agents.values("specialite").annotate(effectif=Count("id")).order_by("-effectif")[:20]
+        )
+        zones_sans = []
+        total_zones = ZoneSanitaire.objects.count()
+        for spec in specialites_cles:
+            keyword = spec.split()[0]
+            couvertes = (
+                ZoneSanitaire.objects.filter(
+                    structures__agents__actif=True,
+                    structures__agents__specialite__icontains=keyword,
+                )
+                .distinct()
+                .count()
+            )
+            zones_sans.append(
+                {
+                    "specialite": spec,
+                    "zones_non_couvertes": max(total_zones - couvertes, 0),
+                    "zones_couvertes": couvertes,
+                    "norme": "Au moins 1 praticien par zone sanitaire",
+                }
+            )
+        return {
+            **declaration_counts,
+            "par_specialite": par_specialite,
+            "couverture_normes": zones_sans,
         }
 
     @staticmethod
@@ -329,10 +377,14 @@ class ReportGenerator:
         return {
             "ratio_medecins": couverture["ratio_medecins_10k"],
             "ratio_infirmiers": couverture["ratio_infirmiers_10k"],
+            "ratio_personnel_qualifie": couverture.get("ratio_personnel_qualifie_10k", 0),
+            "ratio_rhs_10k": couverture.get("ratio_rhs_10k", 0),
             "norme_medecins": 2.3,
-            "norme_infirmiers": 5.0,  # Norme approximative
+            "norme_oms_rhs": 23,
+            "norme_infirmiers": 5.0,
             "conforme_medecins": couverture["conforme_medecins"],
             "conforme_infirmiers": couverture["ratio_infirmiers_10k"] >= 5.0,
+            "conforme_oms_rhs": couverture.get("conforme_oms_rhs", False),
         }
 
     @staticmethod
@@ -453,3 +505,132 @@ class ReportGenerator:
         
         output.seek(0)
         return output.getvalue()
+
+    @staticmethod
+    def _sheet_rows(valeur):
+        if isinstance(valeur, list) and valeur and isinstance(valeur[0], dict):
+            keys = list(valeur[0].keys())
+            rows = [keys]
+            for item in valeur:
+                rows.append([item.get(k, "") for k in keys])
+            return rows
+        if isinstance(valeur, list):
+            return [["Valeur"], ["Aucune donnée"] if not valeur else [str(valeur)]]
+        if isinstance(valeur, dict):
+            rows = [["Indicateur", "Valeur"]]
+            for key, val in valeur.items():
+                if isinstance(val, dict):
+                    for nested_key, nested_val in val.items():
+                        rows.append([f"{key}.{nested_key}", nested_val])
+                elif isinstance(val, list):
+                    rows.append([key, ", ".join(str(x) for x in val[:20])])
+                else:
+                    rows.append([key, val])
+            return rows
+        return [["Valeur"], [valeur]]
+
+    @staticmethod
+    def export_excel(data):
+        """Exporte le rapport en classeur Excel (une feuille par indicateur)."""
+        import openpyxl
+        from openpyxl.styles import Alignment, Font, PatternFill
+
+        wb = openpyxl.Workbook()
+        meta = wb.active
+        meta.title = "Couverture"
+        meta["A1"] = data.get("nom_modele", "Rapport ORHS")
+        meta["A1"].font = Font(bold=True, size=14, color="0B3A66")
+        meta["A3"] = "Campagne"
+        meta["B3"] = data.get("campagne") or "Campagne active"
+        meta["A4"] = "Généré le"
+        meta["B4"] = data.get("date_generation")
+        meta["A5"] = "Département"
+        meta["B5"] = (data.get("filtres") or {}).get("departement") or "Tous"
+        meta.column_dimensions["A"].width = 28
+        meta.column_dimensions["B"].width = 50
+
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="0F7B4F", end_color="0F7B4F", fill_type="solid")
+
+        for name, valeur in data.get("indicateurs", {}).items():
+            title = name[:31]
+            ws = wb.create_sheet(title)
+            rows = ReportGenerator._sheet_rows(valeur)
+            for r_idx, row in enumerate(rows, 1):
+                for c_idx, cell_value in enumerate(row, 1):
+                    cell = ws.cell(row=r_idx, column=c_idx, value=str(cell_value) if cell_value is not None else "")
+                    if r_idx == 1:
+                        cell.font = header_font
+                        cell.fill = header_fill
+                        cell.alignment = Alignment(horizontal="center")
+            ws.column_dimensions["A"].width = 28
+            ws.column_dimensions["B"].width = 40
+
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    @staticmethod
+    def export_pdf(data):
+        """Exporte le rapport en PDF institutionnel."""
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.units import cm
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            title=data.get("nom_modele", "Rapport ORHS"),
+            leftMargin=1.8 * cm,
+            rightMargin=1.8 * cm,
+            topMargin=1.6 * cm,
+            bottomMargin=1.6 * cm,
+        )
+        styles = getSampleStyleSheet()
+        story = [
+            Paragraph("ORHS Bénin — Observatoire des RHS", styles["Heading2"]),
+            Paragraph(data.get("nom_modele", "Rapport"), styles["Heading1"]),
+            Paragraph(
+                f"Campagne : {data.get('campagne') or 'active'} — "
+                f"Généré le {data.get('date_generation', '')}",
+                styles["Normal"],
+            ),
+            Spacer(1, 12),
+        ]
+
+        for name, valeur in data.get("indicateurs", {}).items():
+            story.append(Paragraph(name.replace("_", " ").title(), styles["Heading3"]))
+            rows = ReportGenerator._sheet_rows(valeur)[:16]
+            table = Table(rows, hAlign="LEFT")
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F7B4F")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 8),
+                        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#dde3ea")),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ]
+                )
+            )
+            story.append(table)
+            story.append(Spacer(1, 10))
+
+        story.append(Spacer(1, 16))
+        story.append(
+            Paragraph(
+                "Données agrégées issues des déclarations validées au niveau national. "
+                "Aucune donnée nominative n'est publiée dans ce rapport.",
+                styles["Italic"],
+            )
+        )
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()

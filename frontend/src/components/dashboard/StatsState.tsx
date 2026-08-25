@@ -37,6 +37,7 @@ export function StatsState({
   return children
 }
 
+/* eslint-disable react-refresh/only-export-components */
 export function formatNumber(n: number) {
   return n.toLocaleString('fr-FR')
 }

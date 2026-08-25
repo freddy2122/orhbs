@@ -13,6 +13,7 @@ import {
 import { PUBLIC_DATA_NOTICE } from '../../lib/security'
 
 type HealthFacilitiesMapProps = {
+  facilities?: HealthFacility[]
   typeFilter?: (typeof import('../../constants/facilitiesData').FACILITY_TYPES)[number]
   deptFilter?: string
   selectedId?: string | null
@@ -20,6 +21,7 @@ type HealthFacilitiesMapProps = {
 }
 
 export function HealthFacilitiesMap({
+  facilities: facilitiesProp,
   typeFilter = 'Tous',
   deptFilter = 'Tous',
   selectedId,
@@ -29,12 +31,13 @@ export function HealthFacilitiesMap({
   const [internalSelected, setInternalSelected] = useState<string | null>(null)
 
   const activeId = selectedId ?? internalSelected
+  const source = facilitiesProp ?? HEALTH_FACILITIES
   const facilities = useMemo(
-    () => filterFacilities(HEALTH_FACILITIES, typeFilter, deptFilter),
-    [typeFilter, deptFilter],
+    () => filterFacilities(source, typeFilter, deptFilter),
+    [source, typeFilter, deptFilter],
   )
 
-  const selected = facilities.find((f) => f.id === activeId) ?? HEALTH_FACILITIES.find((f) => f.id === activeId)
+  const selected = facilities.find((f) => f.id === activeId) ?? source.find((f) => f.id === activeId)
 
   const handleSelect = (facility: HealthFacility) => {
     const next = activeId === facility.id ? null : facility

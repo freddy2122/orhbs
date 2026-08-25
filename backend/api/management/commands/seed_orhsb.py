@@ -2,21 +2,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from api.models import Departement, Structure, UserProfile
-
-DEPARTEMENTS = [
-    ("alibori", "Alibori"),
-    ("atacora", "Atacora"),
-    ("atlantique", "Atlantique"),
-    ("borgou", "Borgou"),
-    ("collines", "Collines"),
-    ("couffo", "Couffo"),
-    ("donga", "Donga"),
-    ("littoral", "Littoral"),
-    ("mono", "Mono"),
-    ("oueme", "Ouémé"),
-    ("plateau", "Plateau"),
-    ("zou", "Zou"),
-]
+from api.referentiel_benin import DEPARTEMENTS
 
 STRUCTURES = [
     ("chu-mel", "CHU-MEL Cotonou", "CHU", "littoral"),
@@ -105,21 +91,8 @@ USERS = [
     },
 ]
 
-# Un compte DRH départemental par département (validateur + périmètre départemental)
-DRH_ACCOUNTS = [
-    ("alibori", "DRH Alibori"),
-    ("atacora", "DRH Atacora"),
-    ("atlantique", "DRH Atlantique"),
-    ("borgou", "DRH Borgou"),
-    ("collines", "DRH Collines"),
-    ("couffo", "DRH Couffo"),
-    ("donga", "DRH Donga"),
-    ("littoral", "DRH Littoral"),
-    ("mono", "DRH Mono"),
-    ("oueme", "DRH Ouémé"),
-    ("plateau", "DRH Plateau"),
-    ("zou", "DRH Zou"),
-]
+# Un compte DRH par département officiel (les 12, jamais une liste partielle)
+DRH_ACCOUNTS = [(code, f"DRH {nom}") for code, nom, *_ in DEPARTEMENTS]
 
 
 class Command(BaseCommand):
@@ -127,7 +100,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dept_map = {}
-        for code, nom in DEPARTEMENTS:
+        for code, nom, *_ in DEPARTEMENTS:
             dept, _ = Departement.objects.update_or_create(
                 code=code,
                 defaults={"nom": nom},
@@ -174,9 +147,10 @@ class Command(BaseCommand):
                 defaults=profile_defaults,
             )
 
+        if len(DRH_ACCOUNTS) != 12:
+            raise ValueError(f"Le référentiel doit contenir 12 départements, pas {len(DRH_ACCOUNTS)}.")
+
         for dept_code, poste_label in DRH_ACCOUNTS:
-            if dept_code == "borgou":
-                continue  # déjà couvert par dds.borgou
             username = f"drh.{dept_code}"
             dept = dept_map.get(dept_code)
             if not dept:
@@ -206,5 +180,11 @@ class Command(BaseCommand):
         self.stdout.write(f"Mot de passe par défaut : {DEFAULT_PASSWORD}")
         self.stdout.write("Comptes nationaux : admin, coordination, analyste, validateur,")
         self.stdout.write("                    decideur, partenaire.who")
-        self.stdout.write("Comptes départementaux DRH : drh.littoral, drh.oueme, drh.zou… (12 dépts)")
+        usernames = [f"drh.{code}" for code, _ in DRH_ACCOUNTS]
+        self.stdout.write(f"Comptes DRH ({len(usernames)} départements) : {', '.join(usernames)}")
         self.stdout.write("Comptes terrain : dds.borgou, collecteur.chu-mel")
+
+        from api.services.alerts import ensure_default_configs
+
+        ensure_default_configs()
+        self.stdout.write("Configurations d'alerte email initialisées.")

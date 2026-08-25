@@ -1,8 +1,8 @@
-import json
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from django.db.models import Q
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from api.models import (
     AgentSante,
@@ -11,6 +11,41 @@ from api.models import (
     Structure,
     UserProfile,
 )
+
+DECLARATION_SYNC_FIELDS = (
+    "effectif_total",
+    "dont_femmes",
+    "dont_hommes",
+    "medecins",
+    "medecins_generalistes",
+    "medecins_specialistes",
+    "infirmiers",
+    "infirmiers_auxiliaires",
+    "sages_femmes",
+    "sages_femmes_auxiliaires",
+    "pharmaciens",
+    "techniciens_laboratoire",
+    "techniciens_imagerie",
+    "agents_sante_communautaire",
+    "chirurgiens_dentistes",
+    "kinesitherapeutes",
+    "autres_paramedicaux",
+    "administratifs",
+    "agents_entretien",
+    "autre_personnel",
+    "postes_budgetes",
+    "postes_pourvus",
+    "postes_vacants",
+    "departs_retraite_6_mois",
+    "departs_retraite_12_mois",
+    "observations",
+)
+
+PROTECTED_STATUTS = {
+    DeclarationRHS.Statut.SOUMIS,
+    DeclarationRHS.Statut.VALIDE_DEPARTEMENT,
+    DeclarationRHS.Statut.VALIDE_NATIONAL,
+}
 
 
 class OfflineSyncManager:
@@ -29,7 +64,7 @@ class OfflineSyncManager:
             return None
 
         # Récupérer les structures accessibles
-        structures = Structure.objects.filter(actif=True)
+        structures = Structure.objects.filter(actif=True).select_related("departement", "zone_sanitaire")
         if profile.scope == UserProfile.Scope.STRUCTURE and profile.structure_id:
             structures = structures.filter(id=profile.structure_id)
         elif profile.scope == UserProfile.Scope.DEPARTEMENTAL and profile.departement_id:
@@ -79,8 +114,22 @@ class OfflineSyncManager:
                     "dont_femmes": d.dont_femmes,
                     "dont_hommes": d.dont_hommes,
                     "medecins": d.medecins,
+                    "medecins_generalistes": d.medecins_generalistes,
+                    "medecins_specialistes": d.medecins_specialistes,
                     "infirmiers": d.infirmiers,
+                    "infirmiers_auxiliaires": d.infirmiers_auxiliaires,
                     "sages_femmes": d.sages_femmes,
+                    "sages_femmes_auxiliaires": d.sages_femmes_auxiliaires,
+                    "pharmaciens": d.pharmaciens,
+                    "techniciens_laboratoire": d.techniciens_laboratoire,
+                    "techniciens_imagerie": d.techniciens_imagerie,
+                    "agents_sante_communautaire": d.agents_sante_communautaire,
+                    "chirurgiens_dentistes": d.chirurgiens_dentistes,
+                    "kinesitherapeutes": d.kinesitherapeutes,
+                    "autres_paramedicaux": d.autres_paramedicaux,
+                    "administratifs": d.administratifs,
+                    "agents_entretien": d.agents_entretien,
+                    "autre_personnel": d.autre_personnel,
                     "postes_budgetes": d.postes_budgetes,
                     "postes_pourvus": d.postes_pourvus,
                     "postes_vacants": d.postes_vacants,
@@ -90,6 +139,24 @@ class OfflineSyncManager:
                     "updated_at": d.updated_at.isoformat(),
                 }
                 for d in declarations_qs
+            ],
+            "agents": [
+                {
+                    "id": a.id,
+                    "structure_id": a.structure_id,
+                    "matricule": a.matricule,
+                    "nom": a.nom,
+                    "prenom": a.prenom,
+                    "sexe": a.sexe,
+                    "profession": a.profession,
+                    "poste_occupe": a.poste_occupe,
+                    "statut_agent": a.statut_agent,
+                }
+                for a in AgentSante.objects.filter(
+                    actif=True,
+                    campagne=campagne,
+                    structure_id__in=structures.values_list("id", flat=True),
+                ).order_by("nom", "prenom")[:500]
             ],
             "champs_formulaire": OfflineSyncManager._get_formulaire_fields(),
         }
@@ -139,46 +206,35 @@ class OfflineSyncManager:
         if not campagne:
             return {"success": False, "error": "Aucune campagne active"}
 
-        declaration, created = DeclarationRHS.objects.update_or_create(
-            campagne=campagne,
-            structure=structure,
-            defaults={
-                "statut": DeclarationRHS.Statut.BROUILLON,
-                "effectif_total": offline_declaration.get("effectif_total", 0),
-                "dont_femmes": offline_declaration.get("dont_femmes", 0),
-                "dont_hommes": offline_declaration.get("dont_homes", 0),
-                "medecins": offline_declaration.get("medecins", 0),
-                "medecins_generalistes": offline_declaration.get("medecins_generalistes", 0),
-                "medecins_specialistes": offline_declaration.get("medecins_specialistes", 0),
-                "infirmiers": offline_declaration.get("infirmiers", 0),
-                "infirmiers_auxiliaires": offline_declaration.get("infirmiers_auxiliaires", 0),
-                "sages_femmes": offline_declaration.get("sages_femmes", 0),
-                "sages_femmes_auxiliaires": offline_declaration.get("sages_femmes_auxiliaires", 0),
-                "pharmaciens": offline_declaration.get("pharmaciens", 0),
-                "techniciens_laboratoire": offline_declaration.get("techniciens_laboratoire", 0),
-                "techniciens_imagerie": offline_declaration.get("techniciens_imagerie", 0),
-                "agents_sante_communautaire": offline_declaration.get("agents_sante_communautaire", 0),
-                "chirurgiens_dentistes": offline_declaration.get("chirurgiens_dentistes", 0),
-                "kinesitherapeutes": offline_declaration.get("kinesitherapeutes", 0),
-                "autres_paramedicaux": offline_declaration.get("autres_paramedicaux", 0),
-                "administratifs": offline_declaration.get("administratifs", 0),
-                "agents_entretien": offline_declaration.get("agents_entretien", 0),
-                "autre_personnel": offline_declaration.get("autre_personnel", 0),
-                "postes_budgetes": offline_declaration.get("postes_budgetes", 0),
-                "postes_pourvus": offline_declaration.get("postes_pourvus", 0),
-                "postes_vacants": offline_declaration.get("postes_vacants", 0),
-                "departs_retraite_6_mois": offline_declaration.get("departs_retraite_6_mois", 0),
-                "departs_retraite_12_mois": offline_declaration.get("departs_retraite_12_mois", 0),
-                "observations": offline_declaration.get("observations", ""),
-            },
-        )
+        payload = {
+            field: offline_declaration.get(field, 0 if field != "observations" else "")
+            for field in DECLARATION_SYNC_FIELDS
+        }
+        if "dont_homes" in offline_declaration and not offline_declaration.get("dont_hommes"):
+            payload["dont_hommes"] = offline_declaration.get("dont_homes", 0)
 
-        # Si la déclaration existait déjà et a été modifiée hors ligne, mettre à jour
-        if not created:
-            for field, value in offline_declaration.items():
-                if hasattr(declaration, field) and field != "id" and field != "structure_id":
-                    setattr(declaration, field, value)
-            declaration.save()
+        existing = DeclarationRHS.objects.filter(campagne=campagne, structure=structure).first()
+        if existing and existing.statut in PROTECTED_STATUTS:
+            return {
+                "success": False,
+                "conflict": True,
+                "declaration_id": existing.id,
+                "error": "Déclaration déjà soumise ou validée — fusion manuelle requise.",
+            }
+
+        if existing:
+            for field, value in payload.items():
+                setattr(existing, field, value)
+            existing.save()
+            declaration, created = existing, False
+        else:
+            declaration = DeclarationRHS.objects.create(
+                campagne=campagne,
+                structure=structure,
+                statut=DeclarationRHS.Statut.BROUILLON,
+                **payload,
+            )
+            created = True
 
         return {
             "success": True,
@@ -284,15 +340,25 @@ class OfflineSyncManager:
             ).first()
 
             if server_decl:
-                # Comparer les versions
-                offline_updated = datetime.fromisoformat(offline_decl["updated_at"])
-                if server_decl.updated_at > offline_updated:
+                offline_updated = parse_datetime(str(offline_decl.get("updated_at") or ""))
+                if offline_updated and timezone.is_naive(offline_updated):
+                    offline_updated = timezone.make_aware(offline_updated)
+                server_updated = server_decl.updated_at
+                if offline_updated and server_updated > offline_updated:
                     conflicts.append({
                         "type": "declaration",
                         "structure_id": offline_decl["structure_id"],
-                        "server_version": server_decl.updated_at.isoformat(),
+                        "server_version": server_updated.isoformat(),
                         "offline_version": offline_updated.isoformat(),
                         "message": "La version serveur est plus récente",
+                    })
+                elif server_decl.statut in PROTECTED_STATUTS:
+                    conflicts.append({
+                        "type": "declaration",
+                        "structure_id": offline_decl["structure_id"],
+                        "server_version": server_updated.isoformat(),
+                        "offline_version": offline_decl.get("updated_at"),
+                        "message": "La déclaration serveur est déjà soumise ou validée",
                     })
 
         return conflicts

@@ -1,10 +1,26 @@
 from django.urls import path
 
-from . import views, views_acteurs, views_admin, views_alerts, views_cms, views_collecte, views_monitoring, views_offline, views_reports, views_stats
+from . import views, views_acteurs, views_admin, views_alerts, views_cms, views_collecte, views_monitoring, views_newsletter, views_offline, views_public, views_reports, views_stats
 
 urlpatterns = [
     path("health/", views.health_check, name="health-check"),
+    # API publique (sans authentification — données agrégées et publications)
+    path("public/stats/national/", views_public.PublicNationalStatsView.as_view(), name="public-stats-national"),
+    path("public/stats/departements/", views_public.PublicDepartementStatsView.as_view(), name="public-stats-departements"),
+    path("public/stats/zones/", views_public.PublicZoneStatsView.as_view(), name="public-stats-zones"),
+    path("public/stats/structures/", views_public.PublicStructureStatsView.as_view(), name="public-stats-structures"),
+    path("public/publications/", views_public.PublicPublicationListView.as_view(), name="public-publications"),
+    path("public/publications/<slug:slug>/", views_public.PublicPublicationDetailView.as_view(), name="public-publication-detail"),
+    path("public/publications/<int:pk>/download/", views_public.PublicPublicationDownloadView.as_view(), name="public-publication-download"),
+    path("public/contenus/", views_public.PublicContenuListView.as_view(), name="public-contenus"),
+    path("public/contenus/<slug:slug>/", views_public.PublicContenuDetailView.as_view(), name="public-contenu-detail"),
+    path("public/newsletter/", views_public.PublicNewsletterView.as_view(), name="public-newsletter"),
+    path("public/newsletter/desabonnement/", views_public.PublicNewsletterUnsubscribeView.as_view(), name="public-newsletter-unsub"),
+    path("public/annuaire/", views_public.PublicAnnuaireListView.as_view(), name="public-annuaire"),
+    path("public/publications/rss.xml", views_public.PublicPublicationsRssView.as_view(), name="public-publications-rss"),
+    path("publications/rss.xml", views_public.PublicPublicationsRssView.as_view(), name="publications-rss"),
     path("auth/login/", views.LoginView.as_view(), name="auth-login"),
+    path("auth/logout/", views.LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", views.MeView.as_view(), name="auth-me"),
     # Statistiques RHS (données validées)
     path("stats/national/", views_stats.NationalStatsView.as_view(), name="stats-national"),
@@ -23,7 +39,9 @@ urlpatterns = [
     path("collecte/progress/", views_collecte.CollectionProgressView.as_view(), name="collecte-progress"),
     path("collecte/template-excel/", views_collecte.ExcelTemplateView.as_view(), name="collecte-template-excel"),
     path("collecte/import-excel/", views_collecte.ExcelImportView.as_view(), name="collecte-import-excel"),
+    path("collecte/agents/doublons/", views_collecte.AgentDuplicatesView.as_view(), name="collecte-agents-doublons"),
     path("collecte/agents/", views_collecte.AgentListView.as_view(), name="collecte-agents"),
+    path("collecte/agents/<int:pk>/", views_collecte.AgentDetailView.as_view(), name="collecte-agent-detail"),
     path("collecte/declarations/", views_collecte.DeclarationListCreateView.as_view(), name="declarations-list"),
     path("collecte/declarations/<int:pk>/", views_collecte.DeclarationDetailView.as_view(), name="declarations-detail"),
     path("collecte/declarations/<int:pk>/submit/", views_collecte.DeclarationSubmitView.as_view(), name="declarations-submit"),
@@ -32,21 +50,37 @@ urlpatterns = [
     path("cms/categories/", views_cms.CategoriePublicationListView.as_view(), name="cms-categories"),
     path("cms/publications/", views_cms.PublicationListView.as_view(), name="cms-publications"),
     path("cms/publications/<int:pk>/", views_cms.PublicationDetailView.as_view(), name="cms-publication-detail"),
+    path("cms/publications/<int:pk>/upload/", views_cms.PublicationUploadView.as_view(), name="cms-publication-upload"),
     path("cms/publications/<int:pk>/download/", views_cms.PublicationDownloadView.as_view(), name="cms-publication-download"),
+    path("cms/contenus/", views_cms.ContenuEditorialListView.as_view(), name="cms-contenus"),
+    path("cms/contenus/<int:pk>/", views_cms.ContenuEditorialDetailView.as_view(), name="cms-contenu-detail"),
+    path("cms/annuaire/", views_cms.InscriptionOrdreListView.as_view(), name="cms-annuaire"),
+    path("cms/annuaire/<int:pk>/", views_cms.InscriptionOrdreDetailView.as_view(), name="cms-annuaire-detail"),
+    path("cms/newsletter/abonnes/", views_newsletter.NewsletterSubscriberListView.as_view(), name="cms-newsletter-abonnes"),
+    path("cms/newsletter/abonnes/<int:pk>/", views_newsletter.NewsletterSubscriberDetailView.as_view(), name="cms-newsletter-abonne-detail"),
+    path("cms/newsletter/campagnes/", views_newsletter.NewsletterCampaignListView.as_view(), name="cms-newsletter-campagnes"),
+    path("cms/newsletter/campagnes/<int:pk>/envoyer/", views_newsletter.NewsletterCampaignSendView.as_view(), name="cms-newsletter-campagne-send"),
     # Administration
+    path("admin/organization/", views_admin.OrganizationManagementView.as_view(), name="admin-organization"),
+    path("admin/organization/<str:kind>/<int:pk>/", views_admin.OrganizationDetailView.as_view(), name="admin-organization-detail"),
     path("admin/users/", views_admin.UserManagementView.as_view(), name="admin-users"),
     path("admin/users/<int:pk>/", views_admin.UserDetailView.as_view(), name="admin-user-detail"),
     path("admin/audit/", views_admin.AuditLogView.as_view(), name="admin-audit"),
     path("admin/mouvements/", views_admin.MouvementAgentListView.as_view(), name="admin-mouvements"),
+    path("admin/qualifications/", views_admin.AgentQualificationListView.as_view(), name="admin-qualifications"),
+    path("admin/qualifications/<int:pk>/", views_admin.AgentQualificationDetailView.as_view(), name="admin-qualification-detail"),
     path("admin/alertes/", views_admin.AlerteEmailListView.as_view(), name="admin-alertes"),
+    path("admin/alertes/<int:pk>/", views_admin.AlerteEmailDetailView.as_view(), name="admin-alerte-detail"),
     path("admin/config-alertes/", views_admin.ConfigAlerteListView.as_view(), name="admin-config-alertes"),
     path("admin/config-alertes/<int:pk>/", views_admin.ConfigAlerteDetailView.as_view(), name="admin-config-alerte-detail"),
     # Rapports personnalisés
     path("reports/modeles/", views_reports.ReportModelsView.as_view(), name="reports-models"),
     path("reports/generate/", views_reports.ReportGenerateView.as_view(), name="reports-generate"),
+    path("reports/history/", views_reports.ReportHistoryView.as_view(), name="reports-history"),
     # Alertes avancées
     path("alerts/advanced/", views_alerts.AdvancedAlertsView.as_view(), name="alerts-advanced"),
     path("alerts/trigger/", views_alerts.TriggerAlertsView.as_view(), name="alerts-trigger"),
+    path("alerts/send/", views_alerts.SendPendingAlertsView.as_view(), name="alerts-send"),
     # Mode hors ligne
     path("offline/export/", views_offline.OfflineDataExportView.as_view(), name="offline-export"),
     path("offline/sync/", views_offline.OfflineSyncView.as_view(), name="offline-sync"),

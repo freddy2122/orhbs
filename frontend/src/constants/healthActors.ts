@@ -26,7 +26,7 @@ export const ACTOR_MODULES: ActorModule[] = [
     utility: 'Suivi en temps réel de chaque agent — éviter les dossiers perdus.',
     href: '/dashboard/acteurs/personnel',
     icon: Users,
-    roles: ['coordination', 'analyste', 'validateur', 'collecteur'],
+    roles: ['coordination', 'analyste', 'validateur', 'collecteur', 'admin', 'decideur'],
   },
   {
     id: 'planification',
@@ -44,7 +44,7 @@ export const ACTOR_MODULES: ActorModule[] = [
     utility: 'Corriger immédiatement les inégalités de répartition sur le terrain.',
     href: '/dashboard/acteurs/cartographie',
     icon: MapPinned,
-    roles: ['coordination', 'validateur', 'collecteur'],
+    roles: ['coordination', 'validateur', 'collecteur', 'analyste', 'decideur'],
   },
   {
     id: 'competences',
@@ -62,7 +62,7 @@ export const ACTOR_MODULES: ActorModule[] = [
     utility: 'Éviter la double saisie et assurer la mise à jour automatique du système.',
     href: '/dashboard/acteurs/interoperabilite',
     icon: Database,
-    roles: ['coordination', 'admin'],
+    roles: ['coordination', 'admin', 'analyste'],
   },
 ]
 

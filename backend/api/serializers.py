@@ -3,13 +3,19 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import (
+    AbonneNewsletter,
+    CampagneNewsletter,
+    AgentQualification,
     AgentSante,
     AlerteEmail,
     AuditLog,
     CategoriePublication,
     ConfigAlerte,
+    ContenuEditorial,
+    InscriptionOrdre,
     MouvementAgent,
     Publication,
+    RapportGenere,
     CampagneCollecte,
     DeclarationRHS,
     Departement,
@@ -25,15 +31,21 @@ User = get_user_model()
 class DepartementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departement
-        fields = ("id", "code", "nom", "population")
+        fields = ("id", "code", "nom", "population", "actif")
 
 
 class ZoneSanitaireSerializer(serializers.ModelSerializer):
     departement = DepartementSerializer(read_only=True)
+    departement_id = serializers.PrimaryKeyRelatedField(
+        source="departement",
+        queryset=Departement.objects.all(),
+        required=False,
+        write_only=True,
+    )
 
     class Meta:
         model = ZoneSanitaire
-        fields = ("id", "code", "nom", "departement")
+        fields = ("id", "code", "nom", "departement", "departement_id", "actif")
 
 
 class StructureSerializer(serializers.ModelSerializer):
@@ -42,6 +54,19 @@ class StructureSerializer(serializers.ModelSerializer):
     type_structure_label = serializers.CharField(
         source="get_type_structure_display",
         read_only=True,
+    )
+    departement_id = serializers.PrimaryKeyRelatedField(
+        source="departement",
+        queryset=Departement.objects.all(),
+        required=False,
+        write_only=True,
+    )
+    zone_sanitaire_id = serializers.PrimaryKeyRelatedField(
+        source="zone_sanitaire",
+        queryset=ZoneSanitaire.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
     )
 
     class Meta:
@@ -53,7 +78,10 @@ class StructureSerializer(serializers.ModelSerializer):
             "type_structure",
             "type_structure_label",
             "departement",
+            "departement_id",
             "zone_sanitaire",
+            "zone_sanitaire_id",
+            "actif",
         )
 
 
@@ -62,6 +90,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
     scope_label = serializers.CharField(source="get_scope_display", read_only=True)
     departement = DepartementSerializer(read_only=True)
     structure = StructureSerializer(read_only=True)
+    departement_id = serializers.PrimaryKeyRelatedField(
+        source="departement",
+        queryset=Departement.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
+    structure_id = serializers.PrimaryKeyRelatedField(
+        source="structure",
+        queryset=Structure.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
 
     class Meta:
         model = UserProfile
@@ -71,7 +113,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "scope",
             "scope_label",
             "departement",
+            "departement_id",
             "structure",
+            "structure_id",
             "organisation",
             "poste",
         )
@@ -262,8 +306,18 @@ class AgentSanteSerializer(serializers.ModelSerializer):
             "date_prise_service",
             "date_fin_contrat",
             "depart_retraite_prevu",
+            "salaire",
+            "date_debut_conge",
+            "date_fin_conge",
             "telephone",
             "email",
+            "telephone_pro",
+            "email_pro",
+            "matricule_externe",
+            "identifiant_rh",
+            "statut_administratif",
+            "date_suspension",
+            "historique_contrats",
             "nationalite",
             "actif",
         )
@@ -375,46 +429,26 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 class MouvementAgentSerializer(serializers.ModelSerializer):
-    agent = AgentSanteSerializer(read_only=True)
-    agent_id = serializers.PrimaryKeyRelatedField(
-        queryset=AgentSante.objects.all(),
-        source="agent",
-        write_only=True,
-    )
-    structure_origine = StructureSerializer(read_only=True)
-    structure_origine_id = serializers.PrimaryKeyRelatedField(
-        queryset=Structure.objects.all(),
-        source="structure_origine",
-        write_only=True,
-        required=False,
-        allow_null=True,
-    )
-    structure_destination = StructureSerializer(read_only=True)
-    structure_destination_id = serializers.PrimaryKeyRelatedField(
-        queryset=Structure.objects.all(),
-        source="structure_destination",
-        write_only=True,
-        required=False,
-        allow_null=True,
-    )
     type_mouvement_label = serializers.CharField(
         source="get_type_mouvement_display",
         read_only=True,
     )
-    valide_par_user = serializers.SerializerMethodField()
+    structure_origine_nom = serializers.SerializerMethodField()
+    structure_destination_nom = serializers.SerializerMethodField()
+    agent_nom = serializers.SerializerMethodField()
 
     class Meta:
         model = MouvementAgent
         fields = (
             "id",
             "agent",
-            "agent_id",
+            "agent_nom",
             "type_mouvement",
             "type_mouvement_label",
             "structure_origine",
-            "structure_origine_id",
+            "structure_origine_nom",
             "structure_destination",
-            "structure_destination_id",
+            "structure_destination_nom",
             "grade_precedent",
             "grade_nouveau",
             "poste_precedent",
@@ -424,16 +458,40 @@ class MouvementAgentSerializer(serializers.ModelSerializer):
             "motif",
             "reference_arrete",
             "valide_par",
-            "valide_par_user",
             "date_validation",
             "observations",
             "created_at",
+            "created_by",
         )
+        read_only_fields = ("created_by", "valide_par", "date_validation")
 
-    def get_valide_par_user(self, obj):
-        if obj.valide_par:
-            return obj.valide_par.get_full_name() or obj.valide_par.username
-        return None
+    def get_agent_nom(self, obj):
+        if not obj.agent:
+            return ""
+        return f"{obj.agent.prenom} {obj.agent.nom}"
+
+    def get_structure_origine_nom(self, obj):
+        return obj.structure_origine.nom if obj.structure_origine else ""
+
+    def get_structure_destination_nom(self, obj):
+        return obj.structure_destination.nom if obj.structure_destination else ""
+
+
+class AgentQualificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgentQualification
+        fields = (
+            "id",
+            "agent",
+            "intitule",
+            "niveau",
+            "ecole",
+            "date_obtention",
+            "reference",
+            "ajoute_par",
+            "created_at",
+        )
+        read_only_fields = ("ajoute_par", "created_at")
 
 
 class AlerteEmailSerializer(serializers.ModelSerializer):
@@ -466,9 +524,158 @@ class AlerteEmailSerializer(serializers.ModelSerializer):
             "date_envoi",
             "erreur_message",
             "nombre_tentatives",
+            "action_prise",
+            "date_traitement",
             "created_at",
             "updated_at",
         )
+
+
+class RapportGenereSerializer(serializers.ModelSerializer):
+    cree_par_nom = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RapportGenere
+        fields = (
+            "id",
+            "modele",
+            "nom_modele",
+            "parametres",
+            "snapshot",
+            "cree_par_nom",
+            "created_at",
+        )
+
+    def get_cree_par_nom(self, obj):
+        if obj.cree_par:
+            return obj.cree_par.get_full_name() or obj.cree_par.username
+        return ""
+
+
+class ContenuEditorialSerializer(serializers.ModelSerializer):
+    type_contenu_label = serializers.CharField(source="get_type_contenu_display", read_only=True)
+    auteur_full = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ContenuEditorial
+        fields = (
+            "id",
+            "type_contenu",
+            "type_contenu_label",
+            "titre",
+            "slug",
+            "resume",
+            "contenu",
+            "categorie",
+            "lieu",
+            "organisation",
+            "date_debut",
+            "date_fin",
+            "annee",
+            "publie",
+            "date_publication",
+            "auteur_full",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("created_at", "updated_at")
+
+    def get_auteur_full(self, obj):
+        if obj.cree_par:
+            return obj.cree_par.get_full_name() or obj.cree_par.username
+        return ""
+
+
+class InscriptionOrdreSerializer(serializers.ModelSerializer):
+    type_entree_label = serializers.CharField(source="get_type_entree_display", read_only=True)
+    statut_label = serializers.CharField(source="get_statut_display", read_only=True)
+
+    class Meta:
+        model = InscriptionOrdre
+        fields = (
+            "id",
+            "type_entree",
+            "type_entree_label",
+            "nom",
+            "numero_inscription",
+            "ordre",
+            "specialite",
+            "departement",
+            "commune",
+            "statut",
+            "statut_label",
+            "inscrit_depuis",
+            "titre",
+            "nationalite",
+            "universite",
+            "annee_diplome",
+            "mode_exercice",
+            "lieu_exercice",
+            "adresse",
+            "telephone",
+            "email",
+            "directeur",
+            "numero_autorisation",
+            "lits",
+            "publie",
+            "created_at",
+            "updated_at",
+        )
+
+
+class AbonneNewsletterSerializer(serializers.ModelSerializer):
+    source_label = serializers.CharField(source="get_source_display", read_only=True)
+
+    class Meta:
+        model = AbonneNewsletter
+        fields = (
+            "id",
+            "email",
+            "actif",
+            "source",
+            "source_label",
+            "date_desabonnement",
+            "created_at",
+        )
+        read_only_fields = ("id", "source", "source_label", "date_desabonnement", "created_at")
+
+
+class CampagneNewsletterSerializer(serializers.ModelSerializer):
+    statut_label = serializers.CharField(source="get_statut_display", read_only=True)
+    created_by_nom = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CampagneNewsletter
+        fields = (
+            "id",
+            "sujet",
+            "corps",
+            "statut",
+            "statut_label",
+            "destinataires_prevus",
+            "envoyes",
+            "erreurs",
+            "date_envoi",
+            "created_by_nom",
+            "created_at",
+        )
+        read_only_fields = (
+            "id",
+            "statut",
+            "statut_label",
+            "destinataires_prevus",
+            "envoyes",
+            "erreurs",
+            "date_envoi",
+            "created_by_nom",
+            "created_at",
+        )
+
+    def get_created_by_nom(self, obj):
+        user = obj.created_by
+        if not user:
+            return ""
+        return user.get_full_name() or user.username
 
 
 class ConfigAlerteSerializer(serializers.ModelSerializer):

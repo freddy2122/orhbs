@@ -3,9 +3,12 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
 from .models import (
+    AbonneNewsletter,
     AgentSante,
     AlerteEmail,
     AuditLog,
+    CampagneNewsletter,
+    EnvoiNewsletter,
     CategoriePublication,
     ConfigAlerte,
     MouvementAgent,
@@ -48,3 +51,6 @@ admin.site.register(AuditLog)
 admin.site.register(MouvementAgent)
 admin.site.register(AlerteEmail)
 admin.site.register(ConfigAlerte)
+admin.site.register(AbonneNewsletter)
+admin.site.register(CampagneNewsletter)
+admin.site.register(EnvoiNewsletter)

@@ -40,6 +40,7 @@ class CartographyView(APIView):
             {
                 "campagne": _serialize_campagne(data["campagne"]),
                 "structures": data["structures"],
+                "population_density": data.get("population_density", []),
             }
         )
 

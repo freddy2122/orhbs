@@ -7,6 +7,7 @@ import {
 import { LOGOS } from '../../constants/institutional'
 import { NAV_ITEMS } from '../../constants/navigation'
 import { FlagBar } from '../ui/FlagBar'
+import { NewsletterForm } from '../ui/NewsletterForm'
 
 function FooterLinkItem({
   label,
@@ -144,6 +145,10 @@ export function Footer() {
                 >
                   Nous contacter
                 </Link>
+              </li>
+              <li className="pt-4">
+                <p className="mb-2 text-sm font-semibold text-white">Newsletter</p>
+                <NewsletterForm compact variant="dark" />
               </li>
               <li className="pt-2">
                 <Link

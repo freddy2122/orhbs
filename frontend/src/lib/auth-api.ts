@@ -1,21 +1,36 @@
 import { apiUrl } from './api'
 import type { AuthUser, LoginResponse } from '../types/auth'
 
-const ACCESS_TOKEN_KEY = 'orhsb_access_token'
-const REFRESH_TOKEN_KEY = 'orhsb_refresh_token'
-
-export function getAccessToken(): string | null {
-  return localStorage.getItem(ACCESS_TOKEN_KEY)
+function getCsrfToken(): string | null {
+  const cookie = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith('csrftoken='))
+  return cookie ? decodeURIComponent(cookie.split('=')[1] ?? '') : null
 }
 
-export function setTokens(access: string, refresh: string): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, access)
-  localStorage.setItem(REFRESH_TOKEN_KEY, refresh)
+export function getAccessToken(): string | null {
+  return null
+}
+
+export function setTokens(_access: string, _refresh: string): void {
+  return
 }
 
 export function clearTokens(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
+  return
+}
+
+export async function logoutRequest(): Promise<void> {
+  const csrfToken = getCsrfToken()
+  try {
+    await fetch(apiUrl('/api/auth/logout/'), {
+      method: 'POST',
+      credentials: 'include',
+      headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
+    })
+  } catch {
+    // Ignore logout errors; cookies are cleared server-side when possible.
+  }
 }
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -44,11 +59,16 @@ export async function loginRequest(
   username: string,
   password: string,
 ): Promise<LoginResponse> {
+  const csrfToken = getCsrfToken()
   let response: Response
   try {
     response = await fetch(apiUrl('/api/auth/login/'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+      },
+      credentials: 'include',
       body: JSON.stringify({ username, password }),
     })
   } catch {
@@ -60,11 +80,9 @@ export async function loginRequest(
 }
 
 export async function fetchCurrentUser(): Promise<AuthUser> {
-  const token = getAccessToken()
-  if (!token) throw new Error('Non authentifié')
-
   const response = await fetch(apiUrl('/api/auth/me/'), {
-    headers: { Authorization: `Bearer ${token}` },
+    method: 'GET',
+    credentials: 'include',
   })
   return parseJson<AuthUser>(response)
 }

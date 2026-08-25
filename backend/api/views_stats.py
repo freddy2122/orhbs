@@ -20,6 +20,35 @@ def serialize_campagne(campagne):
     return CampagneCollecteSerializer(campagne).data
 
 
+def serialize_national_payload(stats):
+    totals = stats["totals"]
+    return {
+        "campagne": serialize_campagne(stats["campagne"]),
+        "effectif_total": totals["effectif_total"],
+        "medecins": totals["medecins"],
+        "infirmiers": totals["infirmiers"],
+        "sages_femmes": totals["sages_femmes"],
+        "dont_femmes": totals["dont_femmes"],
+        "ratio_medecins": stats["ratio_medecins"],
+        "ratio_infirmiers": stats["ratio_infirmiers"],
+        "ratio_sages_femmes": stats.get("ratio_sages_femmes", 0),
+        "ratio_rhs_10k": stats.get("ratio_rhs_10k", 0),
+        "ratio_personnel_qualifie_10k": stats.get("ratio_personnel_qualifie_10k", 0),
+        "seuil_oms_rhs": stats.get("seuil_oms_rhs", 23),
+        "conforme_oms_rhs": stats.get("conforme_oms_rhs", False),
+        "effectif_public": stats.get("effectif_public", 0),
+        "effectif_prive": stats.get("effectif_prive", 0),
+        "effectif_confessionnel": stats.get("effectif_confessionnel", 0),
+        "population": stats["population"],
+        "structures_actives": stats["structures_actives"],
+        "structures_declarantes": stats["structures_declarantes"],
+        "taux_reponse": stats["taux_reponse"],
+        "departements_couverts": stats["departements_couverts"],
+        "departements_total": stats["departements_total"],
+        "en_attente_validation": stats["en_attente_validation"],
+    }
+
+
 def serialize_totals(totals):
     return {
         "effectif_total": totals["effectif_total"],
@@ -31,18 +60,14 @@ def serialize_totals(totals):
     }
 
 
+from api.permissions import get_user_profile, IsNationalOrManagement
+
+
 class NationalStatsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNationalOrManagement]
 
     def get(self, request):
-        profile = get_user_profile(request.user)
-        if not profile:
-            return Response({"detail": "Non autorisé."}, status=403)
-        
-        # Les statistiques nationales ne sont accessibles qu'aux rôles nationaux
-        if profile.scope not in (UserProfile.Scope.NATIONAL, UserProfile.Scope.DEPARTEMENTAL):
-            return Response({"detail": "Non autorisé pour ce périmètre."}, status=403)
-        
+        # profile presence and scope/role enforced by IsNationalOrManagement
         campagne_code = request.query_params.get("campagne")
         campagne = (
             CampagneCollecte.objects.filter(code=campagne_code).first()
@@ -50,26 +75,7 @@ class NationalStatsView(APIView):
             else get_active_campagne()
         )
         stats = national_stats(campagne)
-        totals = stats["totals"]
-        return Response(
-            {
-                "campagne": serialize_campagne(stats["campagne"]),
-                "effectif_total": totals["effectif_total"],
-                "medecins": totals["medecins"],
-                "infirmiers": totals["infirmiers"],
-                "sages_femmes": totals["sages_femmes"],
-                "dont_femmes": totals["dont_femmes"],
-                "ratio_medecins": stats["ratio_medecins"],
-                "ratio_infirmiers": stats["ratio_infirmiers"],
-                "population": stats["population"],
-                "structures_actives": stats["structures_actives"],
-                "structures_declarantes": stats["structures_declarantes"],
-                "taux_reponse": stats["taux_reponse"],
-                "departements_couverts": stats["departements_couverts"],
-                "departements_total": stats["departements_total"],
-                "en_attente_validation": stats["en_attente_validation"],
-            }
-        )
+        return Response(serialize_national_payload(stats))
 
 
 class DepartementStatsView(APIView):
