@@ -73,6 +73,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+def _database_url():
+    return (os.getenv("DATABASE_URL") or "").strip()
+
+
 if "test" in sys.argv or os.getenv("RUNNING_TESTS") == "1":
     DATABASES = {
         "default": {
@@ -80,23 +84,20 @@ if "test" in sys.argv or os.getenv("RUNNING_TESTS") == "1":
             "NAME": BASE_DIR / "test_db.sqlite3",
         }
     }
-elif os.getenv("DATABASE_URL"):
+elif "://" in _database_url():
     DATABASES = {
-        "default": dj_database_url.config(
-            default=os.environ["DATABASE_URL"],
+        "default": dj_database_url.parse(
+            _database_url(),
             conn_max_age=600,
             conn_health_checks=True,
         )
     }
 else:
+    # Collectstatic pendant le build Render : DATABASE_URL n'est pas toujours injecté.
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB", "orhsb"),
-            "USER": os.getenv("POSTGRES_USER", "orhsb"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "orhsb"),
-            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "build.sqlite3",
         }
     }
 
