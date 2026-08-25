@@ -5,6 +5,8 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 
+handler500 = "config.http_errors.server_error"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path(

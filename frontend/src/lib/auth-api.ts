@@ -33,12 +33,16 @@ export async function logoutRequest(): Promise<void> {
   }
 }
 
+function unavailableMessage(): string {
+  return import.meta.env.PROD
+    ? "L'API est en cours de démarrage. Attendez 20 secondes puis réessayez."
+    : 'Le serveur est indisponible. Vérifiez que Django tourne (python manage.py runserver).'
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') ?? ''
   if (!contentType.includes('application/json')) {
-    throw new Error(
-      'Le serveur est indisponible. Vérifiez que Django tourne (python manage.py runserver).',
-    )
+    throw new Error(unavailableMessage())
   }
 
   const data = await response.json().catch(() => ({}))
@@ -55,26 +59,41 @@ async function parseJson<T>(response: Response): Promise<T> {
   return data as T
 }
 
+async function postLogin(username: string, password: string): Promise<Response> {
+  const csrfToken = getCsrfToken()
+  return fetch(apiUrl('/api/auth/login/'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+    },
+    credentials: 'include',
+    body: JSON.stringify({ username, password }),
+  })
+}
+
+function isJsonResponse(response: Response): boolean {
+  return (response.headers.get('content-type') ?? '').includes('application/json')
+}
+
 export async function loginRequest(
   username: string,
   password: string,
 ): Promise<LoginResponse> {
-  const csrfToken = getCsrfToken()
   let response: Response
   try {
-    response = await fetch(apiUrl('/api/auth/login/'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-      },
-      credentials: 'include',
-      body: JSON.stringify({ username, password }),
-    })
+    response = await postLogin(username, password)
+    if (!isJsonResponse(response)) {
+      await new Promise((resolve) => setTimeout(resolve, 4000))
+      response = await postLogin(username, password)
+    }
   } catch {
-    throw new Error(
-      'Impossible de joindre le serveur. Vérifiez que le backend Django est démarré.',
-    )
+    await new Promise((resolve) => setTimeout(resolve, 4000))
+    try {
+      response = await postLogin(username, password)
+    } catch {
+      throw new Error(unavailableMessage())
+    }
   }
   return parseJson<LoginResponse>(response)
 }

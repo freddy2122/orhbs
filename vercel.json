@@ -10,6 +10,14 @@
     }
   },
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://orhsb-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/media/:path*",
+      "destination": "https://orhsb-api.onrender.com/media/:path*"
+    },
     { "source": "/(.*)", "destination": { "service": "frontend" } }
   ]
 }

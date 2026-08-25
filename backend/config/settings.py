@@ -182,6 +182,17 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 if DEBUG and not CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+elif not DEBUG:
+    extra = [
+        "https://orhbs.vercel.app",
+        "https://orhsb.vercel.app",
+    ]
+    public_front = os.getenv("FRONTEND_PUBLIC_URL", "").strip().rstrip("/")
+    if public_front.startswith("http"):
+        extra.append(public_front)
+    CSRF_TRUSTED_ORIGINS = list(dict.fromkeys([*CSRF_TRUSTED_ORIGINS, *extra]))
+
+CSRF_FAILURE_VIEW = "config.http_errors.csrf_failure"
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
