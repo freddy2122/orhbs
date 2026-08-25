@@ -19,7 +19,9 @@ SECRET_KEY = os.getenv(
     "django-insecure-dev-key-change-in-production",
 )
 
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("true", "1", "yes")
+# Render définit RENDER=true : ne jamais laisser le debug Django en production par défaut.
+_default_debug = "False" if os.getenv("RENDER") else "True"
+DEBUG = os.getenv("DJANGO_DEBUG", _default_debug).lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = [
     host.strip()

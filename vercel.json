@@ -6,15 +6,15 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://orhsb-api.onrender.com/api/:path*"
+      "source": "/api/:path(.*)",
+      "destination": "https://orhsb-api.onrender.com/api/:path"
     },
     {
-      "source": "/media/:path*",
-      "destination": "https://orhsb-api.onrender.com/media/:path*"
+      "source": "/media/:path(.*)",
+      "destination": "https://orhsb-api.onrender.com/media/:path"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api(?:/|$)|media(?:/|$)).*)",
       "destination": "/index.html"
     }
   ]
