@@ -20,7 +20,18 @@ from api.referentiel_benin import (
 class Command(BaseCommand):
     help = "Charge le référentiel territorial (12 départements, 34 zones, structures) et une campagne active."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--if-empty",
+            action="store_true",
+            help="Ne fait rien si le référentiel territorial est déjà chargé.",
+        )
+
     def handle(self, *args, **options):
+        if options["if_empty"] and ZoneSanitaire.objects.exists():
+            self.stdout.write("Référentiel déjà présent, seed ignoré.")
+            return
+
         dept_map = {}
         for code, nom, pop in DEPARTEMENTS:
             dept, _ = Departement.objects.update_or_create(

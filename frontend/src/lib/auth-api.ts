@@ -35,7 +35,7 @@ export async function logoutRequest(): Promise<void> {
 
 function unavailableMessage(): string {
   return import.meta.env.PROD
-    ? "L'API est en cours de démarrage. Attendez 20 secondes puis réessayez."
+    ? "Impossible de joindre l'API."
     : 'Le serveur est indisponible. Vérifiez que Django tourne (python manage.py runserver).'
 }
 
@@ -72,10 +72,6 @@ async function postLogin(username: string, password: string): Promise<Response> 
   })
 }
 
-function isJsonResponse(response: Response): boolean {
-  return (response.headers.get('content-type') ?? '').includes('application/json')
-}
-
 export async function loginRequest(
   username: string,
   password: string,
@@ -83,17 +79,8 @@ export async function loginRequest(
   let response: Response
   try {
     response = await postLogin(username, password)
-    if (!isJsonResponse(response)) {
-      await new Promise((resolve) => setTimeout(resolve, 4000))
-      response = await postLogin(username, password)
-    }
   } catch {
-    await new Promise((resolve) => setTimeout(resolve, 4000))
-    try {
-      response = await postLogin(username, password)
-    } catch {
-      throw new Error(unavailableMessage())
-    }
+    throw new Error(unavailableMessage())
   }
   return parseJson<LoginResponse>(response)
 }

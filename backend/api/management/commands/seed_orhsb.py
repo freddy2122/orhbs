@@ -98,7 +98,17 @@ DRH_ACCOUNTS = [(code, f"DRH {nom}") for code, nom, *_ in DEPARTEMENTS]
 class Command(BaseCommand):
     help = "Initialise départements, structures et comptes ORHS de démonstration."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--if-empty",
+            action="store_true",
+            help="Ne fait rien s'il existe déjà des utilisateurs.",
+        )
+
     def handle(self, *args, **options):
+        if options["if_empty"] and User.objects.exists():
+            self.stdout.write("Comptes déjà présents, seed ignoré.")
+            return
         dept_map = {}
         for code, nom, *_ in DEPARTEMENTS:
             dept, _ = Departement.objects.update_or_create(
