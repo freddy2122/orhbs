@@ -120,7 +120,7 @@ class Command(BaseCommand):
             struct_map[code] = structure
 
         for spec in USERS:
-            user, created = User.objects.update_or_create(
+            user, _created = User.objects.update_or_create(
                 username=spec["username"],
                 defaults={
                     "email": spec["email"],
@@ -128,11 +128,11 @@ class Command(BaseCommand):
                     "last_name": spec["last_name"],
                     "is_staff": spec.get("is_staff", False),
                     "is_superuser": spec.get("is_superuser", False),
+                    "is_active": True,
                 },
             )
-            if created:
-                user.set_password(DEFAULT_PASSWORD)
-                user.save()
+            user.set_password(DEFAULT_PASSWORD)
+            user.save()
 
             profile_defaults = {
                 "role": spec["role"],
@@ -155,17 +155,17 @@ class Command(BaseCommand):
             dept = dept_map.get(dept_code)
             if not dept:
                 continue
-            user, created = User.objects.update_or_create(
+            user, _created = User.objects.update_or_create(
                 username=username,
                 defaults={
                     "email": f"{username}@orhsb.bj",
                     "first_name": "Responsable",
                     "last_name": dept.nom,
+                    "is_active": True,
                 },
             )
-            if created:
-                user.set_password(DEFAULT_PASSWORD)
-                user.save()
+            user.set_password(DEFAULT_PASSWORD)
+            user.save()
             UserProfile.objects.update_or_create(
                 user=user,
                 defaults={
