@@ -1,4 +1,4 @@
-import { ArrowLeft, Shield } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LOGOS } from '../constants/institutional'
@@ -113,8 +113,12 @@ export function LoginPage() {
             </div>
 
             <div className="mb-8 text-center lg:text-left">
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-health-green/10 text-health-green">
-                <Shield className="h-6 w-6" strokeWidth={1.75} />
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-[#e8ecf0] bg-white p-1">
+                <img
+                  src={LOGOS.ministereSante}
+                  alt=""
+                  className="h-10 w-auto object-contain"
+                />
               </div>
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-health-green">
                 Accès sécurisé

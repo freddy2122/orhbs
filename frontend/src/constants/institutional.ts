@@ -25,4 +25,9 @@ export const LOGOS = {
   republique: '/images/logos/republique-benin.png',
   ministereSante: '/images/logos/ministere-sante.png',
   orhsb: '/images/logos/orhsb.png',
+  oms: '/images/logos/oms.svg',
+  unicef: '/images/logos/unicef.svg',
+  instad: '/images/logos/instad.jpg',
+  snis: '/images/logos/snis.svg',
+  ordres: '/images/logos/ordres.svg',
 } as const

@@ -5,6 +5,7 @@ import {
   Handshake,
   Hospital,
 } from 'lucide-react'
+import { LOGOS } from './institutional'
 
 export type MissionCard = {
   id: string
@@ -60,6 +61,7 @@ export type Partner = {
   id: string
   name: string
   abbr?: string
+  logo?: string
 }
 
 export const MISSION_CARDS: MissionCard[] = [
@@ -106,10 +108,10 @@ export const TRAINING_CATEGORIES: TrainingCategory[] = []
 export const NEWS_ITEMS: NewsItem[] = []
 
 export const PARTNERS: Partner[] = [
-  { id: 'ms', name: 'Ministère de la Santé', abbr: 'MS' },
-  { id: 'oms', name: 'Organisation Mondiale de la Santé', abbr: 'OMS' },
-  { id: 'unicef', name: 'UNICEF', abbr: 'UNICEF' },
-  { id: 'instad', name: 'Institut National de la Statistique', abbr: 'INStaD' },
-  { id: 'snis', name: 'Système National d\'Information Sanitaire', abbr: 'SNIS' },
-  { id: 'ordre', name: 'Ordres professionnels de santé', abbr: 'OPS' },
+  { id: 'ms', name: 'Ministère de la Santé', abbr: 'MS', logo: LOGOS.ministereSante },
+  { id: 'oms', name: 'Organisation Mondiale de la Santé', abbr: 'OMS', logo: LOGOS.oms },
+  { id: 'unicef', name: 'UNICEF', abbr: 'UNICEF', logo: LOGOS.unicef },
+  { id: 'instad', name: 'Institut National de la Statistique', abbr: 'INStaD', logo: LOGOS.instad },
+  { id: 'snis', name: 'Système National d\'Information Sanitaire', abbr: 'SNIS', logo: LOGOS.snis },
+  { id: 'ordre', name: 'Ordres professionnels de santé', abbr: 'OPS', logo: LOGOS.ordres },
 ]

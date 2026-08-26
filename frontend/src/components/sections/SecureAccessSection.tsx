@@ -1,13 +1,18 @@
-import { Lock, Shield } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { LOGOS } from '../../constants/institutional'
 
 export function SecureAccessSection() {
   return (
     <section className="bg-institutional-blue py-12 sm:py-14">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 md:flex-row md:justify-between md:text-left">
         <div className="flex max-w-xl items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/10 text-gold-accent">
-            <Shield className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1">
+            <img
+              src={LOGOS.ministereSante}
+              alt=""
+              className="h-10 w-auto object-contain"
+            />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-white sm:text-2xl">

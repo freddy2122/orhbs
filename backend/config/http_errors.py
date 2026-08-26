@@ -12,7 +12,15 @@ def csrf_failure(request, reason=""):
 
 def server_error(request):
     if request.path.startswith("/api/"):
-        return JsonResponse({"detail": "Erreur interne de l'API."}, status=500)
+        return JsonResponse(
+            {
+                "detail": (
+                    "Erreur interne de l'API. "
+                    "Vérifiez que DATABASE_URL est lié à orhsb-db sur Render."
+                )
+            },
+            status=500,
+        )
     from django.views.defaults import server_error as django_server_error
 
     return django_server_error(request)

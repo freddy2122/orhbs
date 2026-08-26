@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Globe, Shield } from 'lucide-react'
+import { ArrowRight, Globe } from 'lucide-react'
 import { PageBanner } from '../components/ui/PageBanner'
 import { PUBLIC_MODULES } from '../constants/publicSpace'
+import { LOGOS } from '../constants/institutional'
 import { PUBLIC_DATA_NOTICE } from '../lib/security'
 
 export function PublicSpacePage() {
@@ -57,7 +58,11 @@ export function PublicSpacePage() {
 
       <section className="border-t border-[#e8ecf0] bg-institutional-blue py-12">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
-          <Shield className="mx-auto h-8 w-8 text-gold-accent" />
+          <img
+            src={LOGOS.ministereSante}
+            alt=""
+            className="mx-auto h-14 w-auto object-contain brightness-0 invert"
+          />
           <h2 className="mt-4 text-xl font-semibold text-white">Besoin de données détaillées ?</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm text-white/70">
             Les données nominatives et les analyses approfondies sont accessibles via l&apos;espace sécurisé, sur demande et après validation.

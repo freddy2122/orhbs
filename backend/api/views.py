@@ -47,15 +47,45 @@ def clear_auth_cookies(response):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_check(request):
-    return Response({"status": "ok", "message": "API Django opérationnelle"})
+    from django.db import connection
+    from django.db.utils import DatabaseError
+
+    database_ok = False
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        database_ok = True
+    except DatabaseError:
+        database_ok = False
+    return Response(
+        {
+            "status": "ok" if database_ok else "degraded",
+            "message": "API Django opérationnelle",
+            "database": database_ok,
+        }
+    )
 
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if not serializer.is_valid():
+        from django.db.utils import DatabaseError
+
+        try:
+            serializer = LoginSerializer(data=request.data)
+            valid = serializer.is_valid()
+        except DatabaseError:
+            return Response(
+                {
+                    "detail": (
+                        "Base de données indisponible. "
+                        "Sur Render (orhsb-api → Environment), liez DATABASE_URL à orhsb-db."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        if not valid:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
