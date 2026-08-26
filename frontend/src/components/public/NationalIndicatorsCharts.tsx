@@ -186,7 +186,9 @@ export function NationalIndicatorsCharts() {
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      label={({ name, pct }) => `${name} ${pct}%`}
+                      label={({ name, percent }) =>
+                        `${name} ${Math.round((percent ?? 0) * 100)}%`
+                      }
                     >
                       {sectorData.map((_, i) => (
                         <Cell key={i} fill={SECTOR_COLORS[i % SECTOR_COLORS.length]} />
