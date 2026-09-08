@@ -140,6 +140,23 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Le scope "login" n'est utilisé que par LoginView (voir throttling.py) —
+    # ça ne limite ni les endpoints publics ni les endpoints authentifiés.
+    # Désactivé (de fait) pendant les tests : la suite fait des dizaines de
+    # connexions dans le même cache in-memory, sans rapport avec le
+    # comportement anti brute-force qu'on veut vérifier — voir
+    # LoginThrottleTests dans test_auth_integration.py pour ce test dédié.
+    "DEFAULT_THROTTLE_RATES": {
+        "login": (
+            "1000/min"
+            if "test" in sys.argv or os.getenv("RUNNING_TESTS") == "1"
+            else os.getenv("DJANGO_LOGIN_THROTTLE_RATE", "5/min")
+        ),
+    },
+    # Render place l'app derrière un seul reverse proxy : NUM_PROXIES=1 fait
+    # confiance au dernier maillon de X-Forwarded-For (ajouté par ce proxy),
+    # jamais à ceux qu'un client pourrait falsifier lui-même dans l'en-tête.
+    "NUM_PROXIES": 1,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -171,9 +188,17 @@ CORS_ALLOWED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
-# Prévisualisations et URL par défaut Vercel (login cookies cross-site).
+# Prévisualisations Vercel : la plateforme génère une URL aléatoire par build,
+# donc un match exact ne suffit pas. On n'autorise QUE des sous-domaines du
+# projet lui-même (ex. orhsb-git-<branche>-<compte>.vercel.app), jamais
+# "n'importe quel *.vercel.app" — ce dernier appartiendrait à n'importe qui
+# et, combiné à CORS_ALLOW_CREDENTIALS, permettrait à un site tiers de
+# rejouer les cookies d'une victime connectée. Rien n'est autorisé par
+# défaut : chaque environnement doit déclarer explicitement ses previews.
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://[\w.-]+\.vercel\.app$",
+    pattern.strip()
+    for pattern in os.getenv("CORS_ALLOWED_ORIGIN_REGEXES", "").split(",")
+    if pattern.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
 

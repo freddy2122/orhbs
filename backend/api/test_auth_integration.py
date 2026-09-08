@@ -1,8 +1,12 @@
-from django.test import TestCase
+from unittest.mock import patch
+
+from django.core.cache import cache
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from api.models import Departement, Structure, UserProfile, ZoneSanitaire
+from api.throttling import LoginRateThrottle
 
 User = get_user_model()
 
@@ -133,3 +137,79 @@ class AuthIntegrationTests(TestCase):
         )
         self.assertEqual(assigned.status_code, 200)
         self.assertEqual(assigned.json()["profile"]["structure"]["id"], structure_id)
+
+
+class CsrfEnforcementTests(TestCase):
+    """Cookie-based auth (SPA on a different origin than the API) is exposed
+    to CSRF unless the double-submit token is actually checked. These tests
+    use enforce_csrf_checks=True — the default test Client silently disables
+    CSRF, which would hide a regression here."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="csrf_user", password="csrf12345")
+        UserProfile.objects.create(user=self.user, role=UserProfile.Role.COLLECTEUR, scope=UserProfile.Scope.NATIONAL)
+        self.client = Client(enforce_csrf_checks=True)
+        login = self.client.post(
+            reverse("auth-login"),
+            data={"username": "csrf_user", "password": "csrf12345"},
+            content_type="application/json",
+        )
+        self.assertEqual(login.status_code, 200)
+        self.assertIsNotNone(login.cookies.get("csrftoken"))
+
+    def test_cookie_authenticated_post_without_csrf_token_is_rejected(self):
+        forged = self.client.post(reverse("declarations-list"), data={}, content_type="application/json")
+        self.assertEqual(forged.status_code, 403)
+
+    def test_cookie_authenticated_post_with_csrf_token_is_allowed(self):
+        csrf_token = self.client.cookies["csrftoken"].value
+        legit = self.client.post(
+            reverse("declarations-list"),
+            data={},
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertNotEqual(legit.status_code, 403)
+
+    def test_get_requests_do_not_require_csrf_token(self):
+        # Safe methods are exempt by design (CsrfViewMiddleware itself skips them).
+        me = self.client.get(reverse("auth-me"))
+        self.assertEqual(me.status_code, 200)
+
+
+# DEFAULT_THROTTLE_RATES["login"] is forced to "1000/min" while tests run
+# (settings.py) so the rest of the suite's incidental logins never trip it —
+# THROTTLE_RATES is also a plain class attribute DRF reads once at import
+# time, so an @override_settings on REST_FRAMEWORK wouldn't reach it anyway.
+# Patching LoginRateThrottle directly is what actually exercises the limit.
+@patch.object(LoginRateThrottle, "THROTTLE_RATES", {"login": "3/min"})
+class LoginThrottleTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.addCleanup(cache.clear)
+        self.user = User.objects.create_user(username="throttle_user", password="throttle12345")
+        UserProfile.objects.create(user=self.user, role=UserProfile.Role.COLLECTEUR, scope=UserProfile.Scope.NATIONAL)
+
+    def _attempt(self, password="wrong-password"):
+        return self.client.post(
+            reverse("auth-login"),
+            data={"username": "throttle_user", "password": password},
+            content_type="application/json",
+        )
+
+    def test_repeated_login_attempts_are_throttled_per_ip(self):
+        for _ in range(3):
+            resp = self._attempt()
+            self.assertEqual(resp.status_code, 401)
+
+        blocked = self._attempt()
+        self.assertEqual(blocked.status_code, 429)
+        self.assertIn("Retry-After", blocked)
+        self.assertIn("Trop de tentatives de connexion", blocked.json()["detail"])
+
+    def test_correct_password_does_not_bypass_the_throttle(self):
+        for _ in range(3):
+            self._attempt()
+
+        still_blocked = self._attempt(password="throttle12345")
+        self.assertEqual(still_blocked.status_code, 429)

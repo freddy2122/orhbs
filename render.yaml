@@ -25,10 +25,20 @@ services:
       # À renseigner après déploiement Vercel (ex. https://orhsb.vercel.app)
       - key: CORS_ALLOWED_ORIGINS
         sync: false
+      # Optionnel : n'ajouter que si les previews Vercel doivent appeler l'API.
+      # Toujours ancrer sur le nom du projet, jamais un simple ".*\.vercel\.app"
+      # (ex. ^https://orhsb-[a-z0-9-]+\.vercel\.app$) — un pattern trop large
+      # laisse n'importe quel autre projet Vercel rejouer les cookies d'un
+      # utilisateur connecté (CORS_ALLOW_CREDENTIALS est activé).
+      - key: CORS_ALLOWED_ORIGIN_REGEXES
+        sync: false
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
       - key: FRONTEND_PUBLIC_URL
         sync: false
+      # Anti brute-force sur /api/auth/login/ — tentatives par IP, réussies ou non.
+      - key: DJANGO_LOGIN_THROTTLE_RATE
+        value: "5/min"
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.console.EmailBackend
       - key: EMAIL_HOST

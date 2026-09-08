@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.middleware.csrf import get_token
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,6 +8,7 @@ from rest_framework.views import APIView
 
 from api.models import AuditLog
 from .serializers import LoginSerializer, UserSerializer
+from .throttling import LoginRateThrottle, LoginThrottled
 
 
 def _client_ip(request):
@@ -68,6 +70,10 @@ def health_check(request):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def throttled(self, request, wait):
+        raise LoginThrottled(wait=wait)
 
     def post(self, request):
         from django.db.utils import DatabaseError
@@ -95,6 +101,10 @@ class LoginView(APIView):
             access_token=data.get("access"),
             refresh_token=data.get("refresh"),
         )
+        # Issues the csrftoken cookie the SPA reads and echoes back as
+        # X-CSRFToken on every mutating request (see api-client.ts) — required
+        # now that CookieJWTAuthentication enforces CSRF on cookie-based auth.
+        get_token(request)
         AuditLog.objects.create(
             user=serializer.user,
             action=AuditLog.Action.LOGIN,
