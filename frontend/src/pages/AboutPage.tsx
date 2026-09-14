@@ -102,7 +102,10 @@ export function AboutPage() {
 
       <section className="bg-surface-muted py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-8 text-2xl font-semibold text-institutional-blue">Galerie photos</h2>
+          <h2 className="text-2xl font-semibold text-institutional-blue">Galerie photos</h2>
+          <p className="mb-8 mt-2 text-sm text-dark-text/60">
+            Photos d&apos;illustration. Les archives photographiques officielles des activités de l&apos;ORHS seront publiées ici.
+          </p>
           <div className="grid gap-4 sm:grid-cols-3">
             {GALLERY_ITEMS.map((item) => (
               <figure key={item.id} className="overflow-hidden rounded-lg border border-[#e8ecf0] bg-white">

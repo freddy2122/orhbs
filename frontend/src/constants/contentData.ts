@@ -72,4 +72,26 @@ export const TRAINING_INSTITUTIONS_DIR: {
   contact: string
 }[] = []
 
-export const GALLERY_ITEMS: { id: string; type: 'photo'; title: string; src: string }[] = []
+// Photos d'illustration (libres de droits) en attendant les archives photo
+// officielles de l'ORHS — voir le disclaimer affiché sous "Galerie photos"
+// dans AboutPage.tsx. Ne pas légender comme des photos d'activités réelles.
+export const GALLERY_ITEMS: { id: string; type: 'photo'; title: string; src: string }[] = [
+  {
+    id: 'collecte-terrain',
+    type: 'photo',
+    title: 'Illustration — collecte de données sur le terrain',
+    src: '/images/gallery/collecte-terrain.jpg',
+  },
+  {
+    id: 'analyse-indicateurs',
+    type: 'photo',
+    title: 'Illustration — analyse des indicateurs',
+    src: '/images/gallery/analyse-indicateurs.jpg',
+  },
+  {
+    id: 'equipe-soignante',
+    type: 'photo',
+    title: 'Illustration — personnel de santé',
+    src: '/images/gallery/equipe-soignante.jpg',
+  },
+]
