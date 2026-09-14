@@ -42,7 +42,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     description:
       'Consultez les rapports, études, communiqués et actualités publiés par l\'ORHS et ses partenaires.',
     image: '/images/hero/slide-3.jpg',
-    imageAlt: 'Médecin africaine consultant un dossier médical',
+    imageAlt: 'Médecin et infirmière africains examinant un dossier médical',
     buttons: [
       { label: 'Voir les publications', href: '/publications', variant: 'primary' },
       { label: 'Actualités', href: '/actualites', variant: 'outline' },
