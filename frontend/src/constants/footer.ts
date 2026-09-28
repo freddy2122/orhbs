@@ -5,9 +5,9 @@ export type FooterLink = {
 }
 
 export const FOOTER_USEFUL_LINKS: FooterLink[] = [
+  { label: 'Ministère de la Santé', href: 'https://sante.gouv.bj', external: true },
   { label: 'Présidence de la République', href: 'https://presidence.bj', external: true },
   { label: 'Gouvernement du Bénin', href: 'https://www.gouv.bj', external: true },
-  { label: 'Ministère de la Santé', href: 'https://sante.gouv.bj', external: true },
   { label: 'Service Public', href: 'https://service-public.bj', external: true },
   { label: 'Lois et décrets', href: 'https://sgg.gouv.bj', external: true },
 ]
