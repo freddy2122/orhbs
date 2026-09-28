@@ -6,6 +6,7 @@ import {
   createCmsPublication,
   fetchCmsPublications,
   updateCmsPublication,
+  uploadCmsPublicationImage,
   uploadCmsPublicationPdf,
   type PublicPublication,
 } from '../../lib/public-api'
@@ -99,6 +100,17 @@ export function CmsContentPanel() {
     }
   }
 
+  const handleImageUpload = async (item: PublicPublication, file: File | undefined) => {
+    if (!file) return
+    try {
+      await uploadCmsPublicationImage(item.id, file)
+      setMessage(`Image de couverture ajoutée à « ${item.titre} ».`)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload image impossible.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <form onSubmit={handleCreate} className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
@@ -174,14 +186,32 @@ export function CmsContentPanel() {
         <ul className="divide-y divide-[#e8ecf0] rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
           {items.map((item) => (
             <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
-              <div>
-                <p className="font-medium text-institutional-black">{item.titre}</p>
-                <p className="text-xs text-dark-text/50">
-                  {item.type_publication_label} · {item.annee ?? '—'} · {item.publie ? 'Publié' : 'Brouillon'}
-                  {item.fichier_url ? ' · PDF joint' : ' · sans PDF'}
-                </p>
+              <div className="flex items-center gap-3">
+                {item.image_url ? (
+                  <img src={item.image_url} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
+                ) : (
+                  <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded bg-light-gray text-[10px] text-dark-text/40">
+                    Sans image
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium text-institutional-black">{item.titre}</p>
+                  <p className="text-xs text-dark-text/50">
+                    {item.type_publication_label} · {item.annee ?? '—'} · {item.publie ? 'Publié' : 'Brouillon'}
+                    {item.fichier_url ? ' · PDF joint' : ' · sans PDF'}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
+                <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
+                  {item.image_url ? 'Remplacer l’image' : 'Ajouter une image'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(item, e.target.files?.[0])}
+                  />
+                </label>
                 <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
                   {item.fichier_url ? 'Remplacer le PDF' : 'Joindre un PDF'}
                   <input

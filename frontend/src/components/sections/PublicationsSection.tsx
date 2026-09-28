@@ -41,11 +41,16 @@ export function PublicationsSection() {
             {items.map((pub) => (
               <article
                 key={pub.id}
-                className="group flex flex-col rounded-lg border border-[#e8ecf0] bg-white p-6 shadow-sm transition-all duration-200 hover:border-health-green/30 hover:shadow-md"
+                className="group flex flex-col overflow-hidden rounded-lg border border-[#e8ecf0] bg-white shadow-sm transition-all duration-200 hover:border-health-green/30 hover:shadow-md"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
-                  <FileText className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
-                </div>
+                {pub.image_url ? (
+                  <img src={pub.image_url} alt="" className="h-32 w-full object-cover" />
+                ) : (
+                  <div className="flex h-32 w-full items-center justify-center bg-institutional-black/5 text-institutional-black">
+                    <FileText className="h-8 w-8" strokeWidth={1.5} aria-hidden="true" />
+                  </div>
+                )}
+                <div className="flex flex-1 flex-col p-6">
                 <span className="text-xs font-medium uppercase tracking-wider text-health-green">
                   {pub.type_publication_label}
                 </span>
@@ -60,6 +65,7 @@ export function PublicationsSection() {
                   Consulter
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
+                </div>
               </article>
             ))}
           </div>

@@ -10,6 +10,7 @@ import {
   fetchCmsContenus,
   updateCmsAnnuaire,
   updateCmsContenu,
+  uploadCmsContenuImage,
   type ContenuEditorial,
   type EditorialType,
   type InscriptionOrdre,
@@ -130,6 +131,17 @@ export function EditorialCmsPanel() {
     }
   }
 
+  const handleImageUpload = async (item: ContenuEditorial, file: File | undefined) => {
+    if (!file) return
+    try {
+      await uploadCmsContenuImage(item.id, file)
+      setMessage(`Image ajoutée à « ${item.titre} ».`)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload image impossible.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
@@ -234,13 +246,33 @@ export function EditorialCmsPanel() {
         <ul className="divide-y divide-[#e8ecf0] rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
           {items.map((item) => (
             <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
-              <div>
-                <p className="font-medium text-institutional-black">{item.titre}</p>
-                <p className="text-xs text-dark-text/50">{item.categorie || item.type_contenu_label} · {item.publie ? 'Publié' : 'Brouillon'}</p>
+              <div className="flex items-center gap-3">
+                {item.image_url ? (
+                  <img src={item.image_url} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
+                ) : (
+                  <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded bg-light-gray text-[10px] text-dark-text/40">
+                    Sans image
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium text-institutional-black">{item.titre}</p>
+                  <p className="text-xs text-dark-text/50">{item.categorie || item.type_contenu_label} · {item.publie ? 'Publié' : 'Brouillon'}</p>
+                </div>
               </div>
-              <button type="button" onClick={() => updateCmsContenu(item.id, { publie: !item.publie }).then(load)} className="text-xs font-medium text-health-green hover:underline">
-                {item.publie ? 'Dépublier' : 'Publier'}
-              </button>
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
+                  {item.image_url ? 'Remplacer l’image' : 'Ajouter une image'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(item, e.target.files?.[0])}
+                  />
+                </label>
+                <button type="button" onClick={() => updateCmsContenu(item.id, { publie: !item.publie }).then(load)} className="text-xs font-medium text-health-green hover:underline">
+                  {item.publie ? 'Dépublier' : 'Publier'}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

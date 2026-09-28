@@ -16,6 +16,7 @@ export type PublicPublication = {
   categorie: { id: number; nom: string; code: string } | null
   resume: string
   contenu: string
+  image_url: string | null
   fichier_url: string | null
   annee: number | null
   mot_cles: string
@@ -88,4 +89,10 @@ export function uploadCmsPublicationPdf(id: number, file: File) {
   const form = new FormData()
   form.append('fichier_pdf', file)
   return apiUpload<PublicPublication>(`/api/cms/publications/${id}/upload/`, form)
+}
+
+export function uploadCmsPublicationImage(id: number, file: File) {
+  const form = new FormData()
+  form.append('image', file)
+  return apiUpload<PublicPublication>(`/api/cms/publications/${id}/upload-image/`, form)
 }

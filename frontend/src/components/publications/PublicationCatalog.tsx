@@ -127,10 +127,15 @@ export function PublicationCatalog({ archivesOnly = false, limit }: Props) {
 
 function PublicationCard({ pub }: { pub: PublicPublication }) {
   return (
-    <article className="group flex flex-col rounded-lg border border-[#e8ecf0] bg-white p-6 shadow-sm transition-all hover:border-health-green/30 hover:shadow-md">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
-        <FileText className="h-6 w-6" strokeWidth={1.75} />
-      </div>
+    <article className="group flex flex-col overflow-hidden rounded-lg border border-[#e8ecf0] bg-white shadow-sm transition-all hover:border-health-green/30 hover:shadow-md">
+      {pub.image_url ? (
+        <img src={pub.image_url} alt="" className="h-36 w-full object-cover" />
+      ) : (
+        <div className="flex h-36 w-full items-center justify-center bg-institutional-black/5 text-institutional-black">
+          <FileText className="h-9 w-9" strokeWidth={1.5} />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-6">
       <span className="text-xs font-medium uppercase tracking-wider text-health-green">{pub.type_publication_label}</span>
       <h3 className="mt-2 flex-1 text-base font-semibold text-institutional-black">{pub.titre}</h3>
       <p className="mt-2 line-clamp-2 text-sm text-dark-text/60">{pub.resume}</p>
@@ -150,6 +155,7 @@ function PublicationCard({ pub }: { pub: PublicPublication }) {
             <Download className="h-4 w-4" /> PDF
           </a>
         )}
+      </div>
       </div>
     </article>
   )

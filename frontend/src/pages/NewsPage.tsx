@@ -116,6 +116,17 @@ export function NewsPage() {
                       to={`/actualites/${article.slug}`}
                       className="group flex gap-4 rounded-lg border border-[#e8ecf0] bg-white p-5 transition-all hover:border-health-green/30 hover:shadow-sm sm:p-6"
                     >
+                      {article.image_url ? (
+                        <img
+                          src={article.image_url}
+                          alt=""
+                          className="hidden h-24 w-32 shrink-0 rounded-md object-cover sm:block"
+                        />
+                      ) : (
+                        <div className="hidden h-24 w-32 shrink-0 items-center justify-center rounded-md bg-health-green/10 text-health-green sm:flex">
+                          <Newspaper className="h-7 w-7" strokeWidth={1.5} />
+                        </div>
+                      )}
                       <div>
                         <span className="text-xs font-medium uppercase tracking-wider text-health-green">{article.categorie || 'Actualité'}</span>
                         <h2 className="mt-1 text-lg font-semibold text-institutional-black group-hover:text-health-green">{article.titre}</h2>
@@ -144,7 +155,11 @@ export function NewsPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {events.map((event) => (
-                  <article key={event.id} className="rounded-lg border border-[#e8ecf0] bg-white p-6">
+                  <article key={event.id} className="overflow-hidden rounded-lg border border-[#e8ecf0] bg-white">
+                    {event.image_url && (
+                      <img src={event.image_url} alt="" className="h-36 w-full object-cover" />
+                    )}
+                    <div className="p-6">
                     <span className="rounded bg-gold-accent/15 px-2 py-0.5 text-xs font-medium text-gold-deep">{event.categorie || 'Événement'}</span>
                     <h3 className="mt-2 font-semibold text-institutional-black">{event.titre}</h3>
                     {(event.date_debut || event.date_publication) && (
@@ -159,6 +174,7 @@ export function NewsPage() {
                         <MapPin className="h-4 w-4" /> {event.lieu}
                       </p>
                     )}
+                    </div>
                   </article>
                 ))}
               </div>
@@ -273,6 +289,13 @@ export function NewsDetailPage() {
     <main>
       <PageBanner label={article.categorie || 'Actualité'} title={article.titre} />
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        {article.image_url && (
+          <img
+            src={article.image_url}
+            alt=""
+            className="mb-8 aspect-[16/9] w-full rounded-lg object-cover"
+          />
+        )}
         <div className="mb-6 flex flex-wrap gap-4 text-sm text-dark-text/60">
           {article.date_publication && <time>{new Date(article.date_publication).toLocaleDateString('fr-FR')}</time>}
           {article.auteur_full && <span>{article.auteur_full}</span>}

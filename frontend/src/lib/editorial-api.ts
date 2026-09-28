@@ -1,4 +1,4 @@
-import { apiFetch } from './api-client'
+import { apiFetch, apiUpload } from './api-client'
 import type { RegistryEntry, RegistryStatus } from '../constants/registryData'
 
 export type EditorialType =
@@ -17,6 +17,7 @@ export type ContenuEditorial = {
   slug: string
   resume: string
   contenu: string
+  image_url: string | null
   categorie: string
   lieu: string
   organisation: string
@@ -191,6 +192,12 @@ export function updateCmsContenu(id: number, payload: Record<string, unknown>) {
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
+}
+
+export function uploadCmsContenuImage(id: number, file: File) {
+  const form = new FormData()
+  form.append('image', file)
+  return apiUpload<ContenuEditorial>(`/api/cms/contenus/${id}/upload-image/`, form)
 }
 
 export function fetchCmsAnnuaire() {

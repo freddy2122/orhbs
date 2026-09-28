@@ -63,6 +63,13 @@ export function PublicationDetailPage() {
       <PageBanner label={pub.type_publication_label} title={pub.titre} description={pub.resume} />
 
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        {pub.image_url && (
+          <img
+            src={pub.image_url}
+            alt=""
+            className="mb-8 aspect-[16/9] w-full rounded-lg object-cover"
+          />
+        )}
         <div className="mb-8 flex flex-wrap gap-4 text-sm text-dark-text/60">
           {dateLabel && <span>Publié le {dateLabel}</span>}
           <span>•</span>

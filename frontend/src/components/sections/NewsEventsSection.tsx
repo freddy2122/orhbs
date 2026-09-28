@@ -40,6 +40,13 @@ export function NewsEventsSection() {
                 href={item.type_contenu === 'actualite' ? `/actualites/${item.slug}` : '/actualites?tab=events'}
                 className="group flex gap-4 rounded-lg border border-[#e8ecf0] p-5 transition-all hover:border-health-green/30 hover:shadow-sm sm:p-6"
               >
+                {item.image_url ? (
+                  <img src={item.image_url} alt="" className="h-16 w-20 shrink-0 rounded-md object-cover" />
+                ) : (
+                  <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-md bg-health-green/10 text-health-green">
+                    <Newspaper className="h-6 w-6" strokeWidth={1.5} />
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <span className="text-xs font-medium uppercase tracking-wider text-health-green">
                     {item.categorie || item.type_contenu_label}
