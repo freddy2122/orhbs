@@ -6,7 +6,6 @@ import { MissionSection } from '../components/sections/MissionSection'
 import { NewsEventsSection } from '../components/sections/NewsEventsSection'
 import { PartnersSection } from '../components/sections/PartnersSection'
 import { PublicationsSection } from '../components/sections/PublicationsSection'
-import { SecureAccessSection } from '../components/sections/SecureAccessSection'
 import { TrainingInstitutionsSection } from '../components/sections/TrainingInstitutionsSection'
 
 export function HomePage() {
@@ -21,7 +20,6 @@ export function HomePage() {
       <TrainingInstitutionsSection />
       <NewsEventsSection />
       <PartnersSection />
-      <SecureAccessSection />
     </main>
   )
 }
