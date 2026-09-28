@@ -359,6 +359,7 @@ class PublicationSerializer(serializers.ModelSerializer):
     )
     auteur_full = serializers.SerializerMethodField()
     fichier_url = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Publication
@@ -372,6 +373,8 @@ class PublicationSerializer(serializers.ModelSerializer):
             "categorie_id",
             "resume",
             "contenu",
+            "image",
+            "image_url",
             "fichier_pdf",
             "fichier_url",
             "fichier_taille",
@@ -398,6 +401,11 @@ class PublicationSerializer(serializers.ModelSerializer):
     def get_fichier_url(self, obj):
         if obj.fichier_pdf:
             return obj.fichier_pdf.url
+        return None
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return obj.image.url
         return None
 
 
@@ -555,6 +563,7 @@ class RapportGenereSerializer(serializers.ModelSerializer):
 class ContenuEditorialSerializer(serializers.ModelSerializer):
     type_contenu_label = serializers.CharField(source="get_type_contenu_display", read_only=True)
     auteur_full = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = ContenuEditorial
@@ -566,6 +575,8 @@ class ContenuEditorialSerializer(serializers.ModelSerializer):
             "slug",
             "resume",
             "contenu",
+            "image",
+            "image_url",
             "categorie",
             "lieu",
             "organisation",
@@ -584,6 +595,11 @@ class ContenuEditorialSerializer(serializers.ModelSerializer):
         if obj.cree_par:
             return obj.cree_par.get_full_name() or obj.cree_par.username
         return ""
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
 
 
 class InscriptionOrdreSerializer(serializers.ModelSerializer):

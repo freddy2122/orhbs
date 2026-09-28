@@ -210,6 +210,22 @@ class PublicationUploadView(APIView):
         return Response(PublicationSerializer(publication, context={"request": request}).data)
 
 
+class PublicationImageUploadView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        publication = Publication.objects.filter(pk=pk).first()
+        if not publication:
+            return Response({"detail": "Publication introuvable."}, status=404)
+        image = request.FILES.get("image")
+        if not image:
+            return Response({"detail": "Image requise."}, status=400)
+        publication.image = image
+        publication.save(update_fields=["image", "updated_at"])
+        return Response(PublicationSerializer(publication, context={"request": request}).data)
+
+
 def _unique_slug(base: str) -> str:
     slug = slugify(base) or "contenu"
     candidate = slug
@@ -271,6 +287,22 @@ class ContenuEditorialDetailView(APIView):
             return Response({"detail": "Contenu introuvable."}, status=404)
         item.delete()
         return Response(status=204)
+
+
+class ContenuEditorialImageUploadView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        item = ContenuEditorial.objects.filter(pk=pk).first()
+        if not item:
+            return Response({"detail": "Contenu introuvable."}, status=404)
+        image = request.FILES.get("image")
+        if not image:
+            return Response({"detail": "Image requise."}, status=400)
+        item.image = image
+        item.save(update_fields=["image", "updated_at"])
+        return Response(ContenuEditorialSerializer(item, context={"request": request}).data)
 
 
 class InscriptionOrdreListView(APIView):
