@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
-import { LOGOS } from '../../constants/institutional'
+import { INSTITUTIONAL_LINKS, LOGOS } from '../../constants/institutional'
 import { NAV_ITEMS, type NavItem } from '../../constants/navigation'
+import { SearchBar } from '../ui/SearchBar'
+import { FlagBar } from '../ui/FlagBar'
 
 type HeaderProps = {
   activeItem?: string
@@ -112,13 +114,13 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
 
   return (
     <header
-      className={`bg-white transition-shadow duration-300 ${
+      className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${
         scrolled ? 'shadow-[0_4px_20px_rgba(11,58,102,0.08)]' : ''
       }`}
     >
       <div className="border-b border-[#e8ecf0]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:gap-6 lg:py-4">
-          <Link to="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:gap-5 lg:py-3.5">
+          <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2.5 sm:gap-3">
             <img
               src={LOGOS.ministereSante}
               alt="Ministère de la Santé — République du Bénin"
@@ -131,28 +133,22 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
             </div>
           </Link>
 
-          <nav
-            className="hidden items-center gap-5 xl:flex xl:gap-7"
-            aria-label="Navigation principale"
-          >
-            {NAV_ITEMS.map((item) =>
-              item.children ? (
-                <NavDropdown key={item.id} item={item} isActive={activeItem === item.id} />
-              ) : (
-                <NavLinkItem
-                  key={item.id}
-                  to={item.href}
-                  label={item.label}
-                  isActive={activeItem === item.id}
-                />
-              ),
-            )}
-          </nav>
+          <div className="hidden min-w-0 flex-1 sm:block">
+            <SearchBar className="max-w-md" />
+          </div>
 
-          <div className="hidden items-center gap-2.5 lg:flex">
+          <div className="flex shrink-0 items-center gap-2.5">
+            <button
+              type="button"
+              className="hidden items-center gap-1.5 rounded border border-institutional-black/15 bg-white px-2.5 py-1 text-xs font-semibold text-institutional-black transition-colors hover:border-health-green/30 hover:text-health-green sm:flex sm:px-3 sm:text-sm"
+              aria-label="Langue actuelle : Français"
+            >
+              FR
+            </button>
+
             <Link
               to="/espace-prive"
-              className="rounded bg-health-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23]"
+              className="hidden rounded bg-health-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23] lg:inline-flex"
             >
               Espace privé
             </Link>
@@ -193,10 +189,10 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
       </div>
 
       <nav
-        className="hidden border-b border-[#e8ecf0] bg-white lg:block xl:hidden"
-        aria-label="Navigation tablette"
+        className="hidden border-b border-[#e8ecf0] bg-white lg:block"
+        aria-label="Navigation principale"
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-5 overflow-x-auto px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-5 overflow-x-auto px-4 py-2.5 sm:px-6 xl:gap-7">
           {NAV_ITEMS.map((item) =>
             item.children ? (
               <NavDropdown key={item.id} item={item} isActive={activeItem === item.id} />
@@ -212,6 +208,8 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
         </div>
       </nav>
 
+      <FlagBar />
+
       {mobileOpen && (
         <div
           id="mobile-menu"
@@ -221,6 +219,10 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
             className="mx-auto flex max-w-7xl flex-col px-4 py-4 sm:px-6"
             aria-label="Navigation mobile"
           >
+            <div className="mb-4 sm:hidden">
+              <SearchBar />
+            </div>
+
             {NAV_ITEMS.map((item) => (
               <div key={item.id} className="border-b border-light-gray">
                 <Link
@@ -251,6 +253,21 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
                 )}
               </div>
             ))}
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {INSTITUTIONAL_LINKS.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-[#e2e8f0] bg-light-gray px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-institutional-black"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+
             <div className="mt-5 flex flex-col gap-3">
               <Link
                 to="/espace-prive"

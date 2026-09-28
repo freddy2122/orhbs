@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { NAV_ITEMS, NAV_ROUTE_MAP } from '../../constants/navigation'
 import { Footer } from './Footer'
-import { SiteHeader } from './SiteHeader'
+import { Header } from './Header'
 
 function getActiveNavId(pathname: string): string {
   if (pathname === '/contact') return ''
@@ -18,7 +18,7 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-muted">
-      <SiteHeader activeItem={activeItem} />
+      <Header activeItem={activeItem} />
       <Outlet />
       <Footer />
     </div>
