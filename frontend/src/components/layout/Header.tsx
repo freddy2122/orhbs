@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import { LOGOS } from '../../constants/institutional'
-import { NAV_ITEMS } from '../../constants/navigation'
+import { NAV_ITEMS, type NavItem } from '../../constants/navigation'
 
 type HeaderProps = {
   activeItem?: string
@@ -34,6 +35,59 @@ function NavLinkItem({
         <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-health-green" />
       )}
     </Link>
+  )
+}
+
+function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
+  const [open, setOpen] = useState(false)
+  const closeTimer = useRef<number | undefined>(undefined)
+
+  const show = () => {
+    window.clearTimeout(closeTimer.current)
+    setOpen(true)
+  }
+  const hide = () => {
+    closeTimer.current = window.setTimeout(() => setOpen(false), 120)
+  }
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), [])
+
+  return (
+    <div className="relative" onMouseEnter={show} onMouseLeave={hide}>
+      <Link
+        to={item.href}
+        onFocus={show}
+        className={`relative flex items-center gap-1 whitespace-nowrap px-1 py-2 text-sm font-semibold transition-colors duration-200 ${
+          isActive ? 'text-health-green' : 'text-dark-text hover:text-health-green'
+        }`}
+        aria-current={isActive ? 'page' : undefined}
+        aria-expanded={open}
+      >
+        {item.label}
+        <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+        {isActive && (
+          <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-health-green" />
+        )}
+      </Link>
+
+      {open && item.children && (
+        <div
+          className="absolute left-0 top-full z-30 min-w-56 rounded-lg border border-[#e8ecf0] bg-white py-2 shadow-lg"
+          onFocus={show}
+          onBlur={hide}
+        >
+          {item.children.map((child) => (
+            <Link
+              key={child.href}
+              to={child.href}
+              className="block whitespace-nowrap px-4 py-2 text-sm font-medium text-dark-text hover:bg-light-gray hover:text-health-green"
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -81,14 +135,18 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
             className="hidden items-center gap-5 xl:flex xl:gap-7"
             aria-label="Navigation principale"
           >
-            {NAV_ITEMS.map((item) => (
-              <NavLinkItem
-                key={item.id}
-                to={item.href}
-                label={item.label}
-                isActive={activeItem === item.id}
-              />
-            ))}
+            {NAV_ITEMS.map((item) =>
+              item.children ? (
+                <NavDropdown key={item.id} item={item} isActive={activeItem === item.id} />
+              ) : (
+                <NavLinkItem
+                  key={item.id}
+                  to={item.href}
+                  label={item.label}
+                  isActive={activeItem === item.id}
+                />
+              ),
+            )}
           </nav>
 
           <div className="hidden items-center gap-2.5 lg:flex">
@@ -139,14 +197,18 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
         aria-label="Navigation tablette"
       >
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-5 overflow-x-auto px-4 py-2.5 sm:px-6">
-          {NAV_ITEMS.map((item) => (
-            <NavLinkItem
-              key={item.id}
-              to={item.href}
-              label={item.label}
-              isActive={activeItem === item.id}
-            />
-          ))}
+          {NAV_ITEMS.map((item) =>
+            item.children ? (
+              <NavDropdown key={item.id} item={item} isActive={activeItem === item.id} />
+            ) : (
+              <NavLinkItem
+                key={item.id}
+                to={item.href}
+                label={item.label}
+                isActive={activeItem === item.id}
+              />
+            ),
+          )}
         </div>
       </nav>
 
@@ -160,19 +222,34 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
             aria-label="Navigation mobile"
           >
             {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.id}
-                to={item.href}
-                onClick={closeMobile}
-                className={`border-b border-light-gray py-3.5 text-sm font-semibold ${
-                  activeItem === item.id
-                    ? 'text-health-green'
-                    : 'text-dark-text hover:text-health-green'
-                }`}
-                aria-current={activeItem === item.id ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
+              <div key={item.id} className="border-b border-light-gray">
+                <Link
+                  to={item.href}
+                  onClick={closeMobile}
+                  className={`block py-3.5 text-sm font-semibold ${
+                    activeItem === item.id
+                      ? 'text-health-green'
+                      : 'text-dark-text hover:text-health-green'
+                  }`}
+                  aria-current={activeItem === item.id ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+                {item.children && (
+                  <div className="flex flex-col pb-3">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        to={child.href}
+                        onClick={closeMobile}
+                        className="py-2 pl-4 text-sm text-dark-text/70 hover:text-health-green"
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
             <div className="mt-5 flex flex-col gap-3">
               <Link

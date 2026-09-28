@@ -7,7 +7,7 @@ function getActiveNavId(pathname: string): string {
   if (pathname === '/contact') return ''
   if (NAV_ROUTE_MAP[pathname]) return NAV_ROUTE_MAP[pathname]
   if (pathname.startsWith('/publications/')) return 'publications'
-  if (pathname.startsWith('/actualites/')) return 'actualites'
+  if (pathname.startsWith('/actualites/')) return 'publications'
   const item = NAV_ITEMS.find((nav) => nav.href === pathname)
   return item?.id ?? 'accueil'
 }

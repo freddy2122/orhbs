@@ -1,7 +1,13 @@
+export type NavChild = {
+  label: string
+  href: string
+}
+
 export type NavItem = {
   label: string
   href: string
   id: string
+  children?: NavChild[]
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -9,9 +15,27 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'espace-public', label: 'Espace public', href: '/espace-public' },
   { id: 'offres-de-services', label: 'Offres de services', href: '/offres-de-services' },
   { id: 'indicateurs', label: 'Indicateurs', href: '/indicateurs' },
-  { id: 'publications', label: 'Publications', href: '/publications' },
-  { id: 'actualites', label: 'Actualités', href: '/actualites' },
-  { id: 'a-propos', label: 'À propos', href: '/a-propos' },
+  {
+    id: 'publications',
+    label: 'Publications',
+    href: '/publications',
+    children: [
+      { label: 'Toutes les publications', href: '/publications' },
+      { label: 'Archives', href: '/publications/archives' },
+      { label: 'Actualités', href: '/actualites' },
+    ],
+  },
+  {
+    id: 'a-propos',
+    label: 'À propos',
+    href: '/a-propos',
+    children: [
+      { label: "Présentation de l'ORHS", href: '/a-propos' },
+      { label: 'Textes officiels', href: '/textes-officiels' },
+      { label: 'Annuaire formation', href: '/formation' },
+      { label: 'FAQ', href: '/faq' },
+    ],
+  },
 ]
 
 /** Routes rattachées à un item de navigation pour surlignage actif */
@@ -25,7 +49,7 @@ export const NAV_ROUTE_MAP: Record<string, string> = {
   '/indicateurs': 'indicateurs',
   '/publications': 'publications',
   '/publications/archives': 'publications',
-  '/actualites': 'actualites',
+  '/actualites': 'publications',
   '/a-propos': 'a-propos',
   '/textes-officiels': 'a-propos',
   '/formation': 'a-propos',
