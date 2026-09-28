@@ -171,7 +171,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
           </Link>
 
           <nav
-            className="hidden min-w-0 flex-1 items-center gap-5 overflow-x-auto lg:flex xl:gap-7"
+            className="hidden min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto xl:flex xl:gap-7"
             aria-label="Navigation principale"
           >
             {NAV_ITEMS.map((item) =>
@@ -193,7 +193,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
 
             <Link
               to="/espace-prive"
-              className="hidden rounded bg-health-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23] lg:inline-flex"
+              className="hidden rounded bg-health-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23] xl:inline-flex"
             >
               Espace privé
             </Link>
@@ -201,7 +201,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
 
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded border border-[#e8ecf0] p-2 text-institutional-black transition-colors hover:bg-light-gray lg:hidden"
+            className="inline-flex items-center justify-center rounded border border-[#e8ecf0] p-2 text-institutional-black transition-colors hover:bg-light-gray xl:hidden"
             onClick={() => setMobileOpen((open) => !open)}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
@@ -238,7 +238,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
       {mobileOpen && (
         <div
           id="mobile-menu"
-          className="border-t border-[#e8ecf0] bg-white lg:hidden"
+          className="border-t border-[#e8ecf0] bg-white xl:hidden"
         >
           <nav
             className="mx-auto flex max-w-7xl flex-col px-4 py-4 sm:px-6"
