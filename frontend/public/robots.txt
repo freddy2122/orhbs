@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /espace-prive
+Disallow: /connexion
+
+Sitemap: https://orhsb.vercel.app/sitemap.xml

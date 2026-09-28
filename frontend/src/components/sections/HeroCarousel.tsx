@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { HERO_SLIDES, type HeroSlide } from '../../constants/hero'
-
-const AUTO_PLAY_MS = 7000
 
 function SlideButton({
   label,
@@ -15,7 +14,7 @@ function SlideButton({
     return (
       <a
         href={href}
-        className={`${base} bg-health-green text-white shadow-sm hover:bg-[#0d6b45]`}
+        className={`${base} bg-health-green text-white shadow-sm hover:bg-[#005a23]`}
       >
         {label}
       </a>
@@ -34,31 +33,16 @@ function SlideButton({
 
 export function HeroCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
 
   const goTo = useCallback((index: number) => {
     setActiveIndex((index + HERO_SLIDES.length) % HERO_SLIDES.length)
   }, [])
-
-  useEffect(() => {
-    if (isPaused) return
-
-    const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % HERO_SLIDES.length)
-    }, AUTO_PLAY_MS)
-
-    return () => window.clearInterval(timer)
-  }, [isPaused])
 
   return (
     <section
       className="relative isolate min-h-[420px] overflow-hidden sm:min-h-[480px] lg:min-h-[540px]"
       aria-roledescription="carousel"
       aria-label="Présentation de l'ORHS Bénin"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocusCapture={() => setIsPaused(true)}
-      onBlurCapture={() => setIsPaused(false)}
     >
       {HERO_SLIDES.map((slide, index) => {
         const isActive = index === activeIndex
@@ -81,7 +65,7 @@ export function HeroCarousel() {
               loading={index === 0 ? 'eager' : 'lazy'}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-institutional-blue/85 via-institutional-blue/50 to-institutional-blue/15" />
+            <div className="absolute inset-0 bg-gradient-to-r from-institutional-black/85 via-institutional-black/50 to-institutional-black/15" />
             <div className="absolute inset-0 bg-black/10" />
 
             <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
@@ -108,21 +92,45 @@ export function HeroCarousel() {
         )
       })}
 
-      <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:bottom-6">
-        {HERO_SLIDES.map((slide, index) => (
+      <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 sm:bottom-6">
+        {HERO_SLIDES.length > 1 && (
           <button
-            key={slide.id}
             type="button"
-            onClick={() => goTo(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === activeIndex
-                ? 'w-8 bg-gold-accent'
-                : 'w-2 bg-white/50 hover:bg-white/80'
-            }`}
-            aria-label={`Aller à la diapositive ${index + 1}`}
-            aria-current={index === activeIndex}
-          />
-        ))}
+            onClick={() => goTo(activeIndex - 1)}
+            className="rounded-full border border-white/30 bg-black/20 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/40"
+            aria-label="Diapositive précédente"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        )}
+
+        <div className="flex gap-2">
+          {HERO_SLIDES.map((slide, index) => (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => goTo(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === activeIndex
+                  ? 'w-8 bg-gold-accent'
+                  : 'w-2 bg-white/50 hover:bg-white/80'
+              }`}
+              aria-label={`Aller à la diapositive ${index + 1}`}
+              aria-current={index === activeIndex}
+            />
+          ))}
+        </div>
+
+        {HERO_SLIDES.length > 1 && (
+          <button
+            type="button"
+            onClick={() => goTo(activeIndex + 1)}
+            className="rounded-full border border-white/30 bg-black/20 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/40"
+            aria-label="Diapositive suivante"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </section>
   )

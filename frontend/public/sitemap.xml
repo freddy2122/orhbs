@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://orhsb.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://orhsb.vercel.app/espace-public</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://orhsb.vercel.app/offres-de-services</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orhsb.vercel.app/statistiques</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orhsb.vercel.app/indicateurs</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orhsb.vercel.app/cartographie</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orhsb.vercel.app/annuaire</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orhsb.vercel.app/a-propos</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://orhsb.vercel.app/publications</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orhsb.vercel.app/publications/archives</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orhsb.vercel.app/actualites</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orhsb.vercel.app/contact</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orhsb.vercel.app/textes-officiels</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orhsb.vercel.app/formation</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orhsb.vercel.app/faq</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orhsb.vercel.app/demande-acces</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://orhsb.vercel.app/inscription-point-focal</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://orhsb.vercel.app/confidentialite</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://orhsb.vercel.app/mentions-legales</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://orhsb.vercel.app/accessibilite</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://orhsb.vercel.app/plan-du-site</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+</urlset>
