@@ -81,8 +81,8 @@ export function HeroCarousel() {
               loading={index === 0 ? 'eager' : 'lazy'}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-institutional-blue/90 via-institutional-blue/75 to-institutional-blue/55" />
-            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute inset-0 bg-gradient-to-r from-institutional-blue/85 via-institutional-blue/50 to-institutional-blue/15" />
+            <div className="absolute inset-0 bg-black/10" />
 
             <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
               <div className="max-w-2xl">

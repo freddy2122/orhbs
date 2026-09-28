@@ -19,7 +19,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     description:
       "Une plateforme nationale dédiée à l'observation, l'analyse et la valorisation des ressources humaines en santé au Bénin.",
     image: '/images/hero/slide-1.jpg',
-    imageAlt: 'Professionnelle de santé africaine en consultation avec un patient',
+    imageAlt: 'Médecin africain documentant un dossier professionnel',
     buttons: [
       { label: "Découvrir l'ORHS", href: '/a-propos', variant: 'primary' },
       { label: 'Nos missions', href: '/a-propos#missions', variant: 'outline' },
