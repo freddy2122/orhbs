@@ -39,6 +39,7 @@ import { PublicationsPage } from './pages/PublicationsPage'
 import { CartographyPage } from './pages/CartographyPage'
 import { CompliancePage } from './pages/CompliancePage'
 import { PublicSpacePage } from './pages/PublicSpacePage'
+import { ServicesPage } from './pages/ServicesPage'
 import { StatisticsPortalPage } from './pages/StatisticsPortalPage'
 import { TrainingDirectoryPage } from './pages/TrainingDirectoryPage'
 
@@ -199,6 +200,7 @@ function App() {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="espace-public" element={<PublicSpacePage />} />
+          <Route path="offres-de-services" element={<ServicesPage />} />
           <Route path="statistiques" element={<StatisticsPortalPage />} />
           <Route path="cartographie" element={<CartographyPage />} />
           <Route path="annuaire" element={<CompliancePage />} />

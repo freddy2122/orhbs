@@ -84,6 +84,7 @@ export function SitemapPage() {
         ['Indicateurs nationaux', '/indicateurs'],
         ['Cartographie sanitaire', '/cartographie'],
         ['Vérification conformité', '/annuaire'],
+        ['Offres de services', '/offres-de-services'],
         ['Actualités & opportunités', '/actualites?tab=opportunites'],
       ],
     },

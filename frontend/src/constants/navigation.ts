@@ -7,6 +7,7 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { id: 'accueil', label: 'Accueil', href: '/' },
   { id: 'espace-public', label: 'Espace public', href: '/espace-public' },
+  { id: 'offres-de-services', label: 'Offres de services', href: '/offres-de-services' },
   { id: 'indicateurs', label: 'Indicateurs', href: '/indicateurs' },
   { id: 'publications', label: 'Publications', href: '/publications' },
   { id: 'actualites', label: 'Actualités', href: '/actualites' },
@@ -20,6 +21,7 @@ export const NAV_ROUTE_MAP: Record<string, string> = {
   '/statistiques': 'espace-public',
   '/cartographie': 'espace-public',
   '/annuaire': 'espace-public',
+  '/offres-de-services': 'offres-de-services',
   '/indicateurs': 'indicateurs',
   '/publications': 'publications',
   '/publications/archives': 'publications',
