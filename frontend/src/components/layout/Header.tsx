@@ -120,17 +120,12 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
     >
       <div className="border-b border-[#e8ecf0]">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:gap-5 lg:py-3.5">
-          <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2.5 sm:gap-3">
+          <Link to="/" aria-label="Accueil — ORHS Bénin" className="flex min-w-0 shrink-0 items-center gap-2.5 sm:gap-3">
             <img
               src={LOGOS.ministereSante}
               alt="Ministère de la Santé — République du Bénin"
               className="h-9 w-auto shrink-0 object-contain sm:h-10"
             />
-            <div className="min-w-0 border-l border-[#e8ecf0] pl-2.5 sm:pl-3">
-              <p className="truncate text-sm font-semibold leading-tight text-institutional-black sm:text-base lg:text-lg">
-                ORHS Bénin
-              </p>
-            </div>
           </Link>
 
           <div className="hidden min-w-0 flex-1 sm:block">
