@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search, X } from 'lucide-react'
 import { INSTITUTIONAL_LINKS, LOGOS } from '../../constants/institutional'
 import { NAV_ITEMS, type NavItem } from '../../constants/navigation'
 import { SearchBar } from '../ui/SearchBar'
@@ -93,6 +93,48 @@ function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
   )
 }
 
+function SearchToggle() {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    const onClickOutside = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('mousedown', onClickOutside)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('mousedown', onClickOutside)
+    }
+  }, [open])
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center justify-center rounded border border-[#e8ecf0] p-2 text-institutional-black transition-colors hover:bg-light-gray"
+        aria-expanded={open}
+        aria-label={open ? 'Fermer la recherche' : 'Rechercher'}
+      >
+        {open ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-lg border border-[#e8ecf0] bg-white p-2 shadow-lg sm:w-80">
+          <SearchBar />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Header({ activeItem = 'accueil' }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -119,8 +161,8 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
       }`}
     >
       <div className="border-b border-[#e8ecf0]">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:gap-5 lg:py-3.5">
-          <Link to="/" aria-label="Accueil — ORHS Bénin" className="flex min-w-0 shrink-0 items-center gap-2.5 sm:gap-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:gap-6 lg:py-3.5">
+          <Link to="/" aria-label="Accueil — ORHS Bénin" className="flex min-w-0 shrink-0 items-center">
             <img
               src={LOGOS.ministereSante}
               alt="Ministère de la Santé — République du Bénin"
@@ -128,18 +170,26 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
             />
           </Link>
 
-          <div className="hidden min-w-0 flex-1 sm:block">
-            <SearchBar className="max-w-md" />
-          </div>
+          <nav
+            className="hidden min-w-0 flex-1 items-center gap-5 overflow-x-auto lg:flex xl:gap-7"
+            aria-label="Navigation principale"
+          >
+            {NAV_ITEMS.map((item) =>
+              item.children ? (
+                <NavDropdown key={item.id} item={item} isActive={activeItem === item.id} />
+              ) : (
+                <NavLinkItem
+                  key={item.id}
+                  to={item.href}
+                  label={item.label}
+                  isActive={activeItem === item.id}
+                />
+              ),
+            )}
+          </nav>
 
-          <div className="flex shrink-0 items-center gap-2.5">
-            <button
-              type="button"
-              className="hidden items-center gap-1.5 rounded border border-institutional-black/15 bg-white px-2.5 py-1 text-xs font-semibold text-institutional-black transition-colors hover:border-health-green/30 hover:text-health-green sm:flex sm:px-3 sm:text-sm"
-              aria-label="Langue actuelle : Français"
-            >
-              FR
-            </button>
+          <div className="ml-auto flex shrink-0 items-center gap-2.5">
+            <SearchToggle />
 
             <Link
               to="/espace-prive"
@@ -183,26 +233,6 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
         </div>
       </div>
 
-      <nav
-        className="hidden border-b border-[#e8ecf0] bg-white lg:block"
-        aria-label="Navigation principale"
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-5 overflow-x-auto px-4 py-2.5 sm:px-6 xl:gap-7">
-          {NAV_ITEMS.map((item) =>
-            item.children ? (
-              <NavDropdown key={item.id} item={item} isActive={activeItem === item.id} />
-            ) : (
-              <NavLinkItem
-                key={item.id}
-                to={item.href}
-                label={item.label}
-                isActive={activeItem === item.id}
-              />
-            ),
-          )}
-        </div>
-      </nav>
-
       <FlagBar />
 
       {mobileOpen && (
@@ -214,7 +244,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
             className="mx-auto flex max-w-7xl flex-col px-4 py-4 sm:px-6"
             aria-label="Navigation mobile"
           >
-            <div className="mb-4 sm:hidden">
+            <div className="mb-4">
               <SearchBar />
             </div>
 
