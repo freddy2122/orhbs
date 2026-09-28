@@ -314,7 +314,7 @@ export function PersonnelPage() {
       <SecureActorsNotice />
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-        <Filter className="h-4 w-4 text-institutional-blue" />
+        <Filter className="h-4 w-4 text-institutional-black" />
         <select
           value={departement}
           onChange={(e) => handleDepartementChange(e.target.value)}
@@ -408,7 +408,7 @@ export function PersonnelPage() {
           type="button"
           onClick={handleExport}
           disabled={exporting || loading}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#dde3ea] bg-white px-3 py-2 text-sm font-medium text-institutional-blue hover:bg-light-gray disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#dde3ea] bg-white px-3 py-2 text-sm font-medium text-institutional-black hover:bg-light-gray disabled:opacity-50"
         >
           <Download className="h-4 w-4" />
           {exporting ? 'Export…' : 'Exporter Excel'}
@@ -417,7 +417,7 @@ export function PersonnelPage() {
           type="button"
           onClick={handleExportPdf}
           disabled={exportingPdf || loading}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#dde3ea] bg-white px-3 py-2 text-sm font-medium text-institutional-blue hover:bg-light-gray disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#dde3ea] bg-white px-3 py-2 text-sm font-medium text-institutional-black hover:bg-light-gray disabled:opacity-50"
         >
           <FileText className="h-4 w-4" />
           {exportingPdf ? 'Export…' : 'Exporter PDF'}
@@ -458,7 +458,7 @@ export function PersonnelPage() {
                 return !open
               })
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-health-green px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d6b45]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-health-green px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005a23]"
           >
             <UserPlus className="h-4 w-4" />
             {showCreate ? 'Masquer le formulaire' : 'Ajouter une fiche agent'}
@@ -501,7 +501,7 @@ export function PersonnelPage() {
           <StatsState loading={loading} error={error} onRetry={reloadAgents}>
             {agents.length === 0 ? (
               <div className="rounded-xl border border-[#e8ecf0] bg-white p-8 text-center text-sm text-dark-text/60">
-                <p className="font-medium text-institutional-blue">Aucune fiche agent pour l’instant</p>
+                <p className="font-medium text-institutional-black">Aucune fiche agent pour l’instant</p>
                 <p className="mt-2">
                   {canManageAgents
                     ? 'Ajoutez une fiche complète ci-dessus ou importez un fichier Excel pour traiter plusieurs agents.'
@@ -521,7 +521,7 @@ export function PersonnelPage() {
                           : ''
                       }`}
                     >
-                      <p className="font-medium text-institutional-blue">
+                      <p className="font-medium text-institutional-black">
                         {p.prenom} {p.nom}
                       </p>
                       <p className="text-xs text-dark-text/50">
@@ -539,11 +539,11 @@ export function PersonnelPage() {
         {selected && !loading && !error && (
           <div className="lg:col-span-3 rounded-xl border border-[#e8ecf0] bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-institutional-blue/10 text-institutional-blue">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-institutional-black/10 text-institutional-black">
                 <User className="h-7 w-7" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-institutional-blue">
+                <h2 className="text-xl font-bold text-institutional-black">
                   {selected.prenom} {selected.nom}
                 </h2>
                 <p className="font-mono text-sm text-dark-text/60">{selected.matricule}</p>
@@ -551,7 +551,7 @@ export function PersonnelPage() {
                   <span className="inline-block rounded bg-health-green/10 px-2 py-0.5 text-xs font-medium text-health-green">
                     {selected.secteur_label}
                   </span>
-                  <span className="inline-block rounded bg-institutional-blue/10 px-2 py-0.5 text-xs font-medium text-institutional-blue">
+                  <span className="inline-block rounded bg-institutional-black/10 px-2 py-0.5 text-xs font-medium text-institutional-black">
                     {selected.statut_label}
                   </span>
                 </div>

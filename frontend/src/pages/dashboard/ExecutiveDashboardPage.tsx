@@ -18,7 +18,7 @@ import { useDepartementStats, useNationalStats } from '../../hooks/useStatsData'
 
 const heatColors = {
   high: 'bg-health-green text-white',
-  medium: 'bg-gold-accent text-white',
+  medium: 'bg-gold-accent text-institutional-black',
   low: 'bg-orange-400 text-white',
   critical: 'bg-red-500 text-white',
 }
@@ -64,13 +64,13 @@ export function ExecutiveDashboardPage() {
           <>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#e8ecf0] bg-white px-4 py-2 text-sm font-medium text-institutional-blue hover:bg-light-gray"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#e8ecf0] bg-white px-4 py-2 text-sm font-medium text-institutional-black hover:bg-light-gray"
             >
               <Filter className="h-4 w-4" /> Filtres
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white hover:bg-[#092d52]"
+              className="inline-flex items-center gap-2 rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white hover:bg-[#1a1a1a]"
             >
               <Download className="h-4 w-4" /> Rapport PDF
             </button>
@@ -138,7 +138,7 @@ export function ExecutiveDashboardPage() {
 
             <div className="mb-8 grid gap-6 lg:grid-cols-2">
               <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-institutional-blue">
+                <h2 className="mb-4 text-lg font-semibold text-institutional-black">
                   Effectifs par catégorie professionnelle
                 </h2>
                 <div className="h-64">
@@ -149,14 +149,14 @@ export function ExecutiveDashboardPage() {
                       <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip formatter={(v) => formatNumber(Number(v ?? 0))} />
                       <Legend />
-                      <Bar dataKey="effectif" name="Effectif" fill="#0F7B4F" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="effectif" name="Effectif" fill="#006828" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </section>
 
               <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold text-institutional-blue">
+                <h2 className="mb-4 text-lg font-semibold text-institutional-black">
                   Couverture par département
                 </h2>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -183,7 +183,7 @@ export function ExecutiveDashboardPage() {
             </div>
 
             <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-institutional-blue">
+              <h2 className="mb-4 text-lg font-semibold text-institutional-black">
                 Comparaison inter-départements — médecins (données validées)
               </h2>
               <div className="overflow-x-auto">
@@ -207,7 +207,7 @@ export function ExecutiveDashboardPage() {
                       const vsPositive = row.ratio_medecins >= avgRatio
                       return (
                         <tr key={row.departement.code} className="border-b border-[#f0f2f5] last:border-0">
-                          <td className="py-3 pr-4 font-semibold text-institutional-blue">#{row.rang}</td>
+                          <td className="py-3 pr-4 font-semibold text-institutional-black">#{row.rang}</td>
                           <td className="py-3 pr-4">{row.departement.nom}</td>
                           <td className="py-3 pr-4">{formatNumber(row.totals.medecins)}</td>
                           <td className="py-3 pr-4">{formatNumber(row.totals.effectif_total)}</td>

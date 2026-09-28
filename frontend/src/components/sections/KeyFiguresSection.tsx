@@ -37,7 +37,7 @@ export function KeyFiguresSection() {
   const hasData = Boolean(stats && stats.effectif_total > 0)
 
   return (
-    <section className="border-y border-[#e8ecf0] bg-institutional-blue py-14 sm:py-16">
+    <section className="border-y border-[#e8ecf0] bg-institutional-black py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
           label="Données agrégées"

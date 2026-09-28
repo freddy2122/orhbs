@@ -43,19 +43,19 @@ export function PublicationsSection() {
                 key={pub.id}
                 className="group flex flex-col rounded-lg border border-[#e8ecf0] bg-white p-6 shadow-sm transition-all duration-200 hover:border-health-green/30 hover:shadow-md"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
                   <FileText className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <span className="text-xs font-medium uppercase tracking-wider text-health-green">
                   {pub.type_publication_label}
                 </span>
-                <h3 className="mt-2 flex-1 text-base font-semibold leading-snug text-institutional-blue">
+                <h3 className="mt-2 flex-1 text-base font-semibold leading-snug text-institutional-black">
                   {pub.titre}
                 </h3>
                 <p className="mt-3 text-sm text-dark-text/50">{pub.annee ?? '—'}</p>
                 <Link
                   to={`/publications/${pub.slug}`}
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-health-green transition-colors hover:text-[#0d6b45]"
+                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-health-green transition-colors hover:text-[#005a23]"
                 >
                   Consulter
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -68,7 +68,7 @@ export function PublicationsSection() {
         <div className="mt-10 text-center">
           <Link
             to="/publications"
-            className="inline-flex items-center gap-2 rounded bg-institutional-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#092d52]"
+            className="inline-flex items-center gap-2 rounded bg-institutional-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a1a1a]"
           >
             Voir toutes les publications
             <ArrowRight className="h-4 w-4" />

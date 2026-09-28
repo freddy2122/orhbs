@@ -31,10 +31,10 @@ export function ActorsHubPage() {
                 key={mod.id}
                 className="group flex flex-col rounded-xl border border-[#e8ecf0] bg-white p-6 shadow-sm transition-all hover:border-health-green/30 hover:shadow-md"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h2 className="text-lg font-semibold text-institutional-blue">{mod.title}</h2>
+                <h2 className="text-lg font-semibold text-institutional-black">{mod.title}</h2>
                 <p className="mt-2 flex-1 text-sm text-dark-text/65">{mod.description}</p>
                 <p className="mt-3 rounded-lg bg-light-gray/50 px-3 py-2 text-xs text-dark-text/55">
                   <span className="font-medium text-health-green">Utilité : </span>

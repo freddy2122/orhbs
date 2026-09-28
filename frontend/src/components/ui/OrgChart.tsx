@@ -15,7 +15,7 @@ export function OrgChart({ data }: { data: OrgNode }) {
             : 'border-[#e8ecf0] bg-white hover:border-health-green/30'
         }`}
       >
-        <p className="font-semibold text-institutional-blue">{node.title}</p>
+        <p className="font-semibold text-institutional-black">{node.title}</p>
         <p className="text-xs text-dark-text/60">{node.role}</p>
       </button>
       {node.children?.map((child) => renderNode(child, depth + 1))}
@@ -28,7 +28,7 @@ export function OrgChart({ data }: { data: OrgNode }) {
       <div className="rounded-xl border border-[#e8ecf0] bg-light-gray/30 p-6">
         {selected ? (
           <>
-            <h3 className="text-lg font-semibold text-institutional-blue">{selected.title}</h3>
+            <h3 className="text-lg font-semibold text-institutional-black">{selected.title}</h3>
             <p className="mt-1 text-sm text-health-green">{selected.role}</p>
             <ul className="mt-4 space-y-2">
               {selected.missions.map((m) => (

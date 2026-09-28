@@ -110,7 +110,7 @@ function PublicationGroup({
         <div className="mb-10 flex items-center gap-3">
           <Icon className="h-6 w-6 text-health-green" />
           <div>
-            <h2 className="text-xl font-semibold text-institutional-blue">{title}</h2>
+            <h2 className="text-xl font-semibold text-institutional-black">{title}</h2>
             <p className="text-sm text-dark-text/60">{subtitle}</p>
           </div>
         </div>
@@ -123,7 +123,7 @@ function PublicationGroup({
                 <span className="rounded bg-health-green/10 px-2 py-0.5 text-xs font-medium text-health-green">
                   {book.type_publication_label} {book.annee ?? ''}
                 </span>
-                <h3 className="mt-3 font-semibold text-institutional-blue">{book.titre}</h3>
+                <h3 className="mt-3 font-semibold text-institutional-black">{book.titre}</h3>
                 <p className="mt-1 line-clamp-2 text-xs text-dark-text/50">{book.resume}</p>
                 {book.fichier_url ? (
                   <a href={publicPublicationDownloadUrl(book.id)} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-health-green hover:underline">
@@ -142,8 +142,8 @@ function PublicationGroup({
             {items.map((report) => (
               <article key={report.id} className="flex flex-col gap-4 rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <span className="text-xs font-medium text-gold-accent">{report.annee ?? report.type_publication_label}</span>
-                  <h3 className="mt-1 font-semibold text-institutional-blue">{report.titre}</h3>
+                  <span className="text-xs font-medium text-gold-deep">{report.annee ?? report.type_publication_label}</span>
+                  <h3 className="mt-1 font-semibold text-institutional-black">{report.titre}</h3>
                   <p className="text-sm text-dark-text/55">{report.resume}</p>
                 </div>
                 <Link to={`/publications/${report.slug}`} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#e8ecf0] px-4 py-2 text-sm font-medium hover:bg-light-gray">
@@ -158,7 +158,7 @@ function PublicationGroup({
               {items.map((pub) => (
                 <Link key={pub.id} to={`/publications/${pub.slug}`} className="rounded-lg border border-[#e8ecf0] bg-white p-4 transition-colors hover:border-health-green/30">
                   <span className="text-xs font-medium text-health-green">{pub.type_publication_label} · {pub.annee ?? '—'}</span>
-                  <h3 className="mt-1 font-medium text-institutional-blue">{pub.titre}</h3>
+                  <h3 className="mt-1 font-medium text-institutional-black">{pub.titre}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-dark-text/55">{pub.resume}</p>
                 </Link>
               ))}

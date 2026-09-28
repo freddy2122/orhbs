@@ -6,9 +6,9 @@ import { Spinner } from '../ui/Spinner'
 import { fetchPublicContenus, type ContenuEditorial } from '../../lib/editorial-api'
 
 const TYPE_COLORS: Record<string, string> = {
-  Loi: 'bg-institutional-blue/10 text-institutional-blue',
+  Loi: 'bg-institutional-black/10 text-institutional-black',
   Décret: 'bg-health-green/10 text-health-green',
-  Arrêté: 'bg-gold-accent/15 text-[#9a7a2a]',
+  Arrêté: 'bg-gold-accent/15 text-gold-deep',
   Statut: 'bg-dark-text/10 text-dark-text',
 }
 
@@ -46,7 +46,7 @@ export function LegalFrameworkSection() {
                 key={doc.id}
                 className="group flex items-start gap-4 rounded-lg border border-[#e8ecf0] bg-light-gray/30 p-5 transition-all hover:border-health-green/30 hover:bg-white hover:shadow-sm"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
                   <Scale className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -56,7 +56,7 @@ export function LegalFrameworkSection() {
                     </span>
                     <span className="text-xs text-dark-text/50">{doc.annee ?? ''}</span>
                   </div>
-                  <h3 className="mt-1.5 text-sm font-semibold leading-snug text-institutional-blue">
+                  <h3 className="mt-1.5 text-sm font-semibold leading-snug text-institutional-black">
                     {doc.titre}
                   </h3>
                 </div>

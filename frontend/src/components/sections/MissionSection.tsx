@@ -22,7 +22,7 @@ export function MissionSection() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-health-green/10 text-health-green transition-colors group-hover:bg-health-green group-hover:text-white">
                   <Icon className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
                 </div>
-                <h3 className="text-base font-semibold text-institutional-blue">
+                <h3 className="text-base font-semibold text-institutional-black">
                   {card.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-dark-text/70">

@@ -36,7 +36,7 @@ export function TrainingDirectoryPage() {
             <EmptyState title="Annuaire indisponible" description={error} icon={GraduationCap} />
           ) : (
             <>
-              <h2 className="mb-6 text-xl font-semibold text-institutional-blue">Offres de formation</h2>
+              <h2 className="mb-6 text-xl font-semibold text-institutional-black">Offres de formation</h2>
               {offers.length === 0 ? (
                 <EmptyState
                   title="Aucune offre"
@@ -49,7 +49,7 @@ export function TrainingDirectoryPage() {
                   {offers.map((offer) => (
                     <article key={offer.id} className="rounded-lg border border-[#e8ecf0] bg-white p-5">
                       <span className="text-xs font-medium uppercase tracking-wider text-health-green">{offer.categorie || 'Formation'}</span>
-                      <h3 className="mt-1 font-semibold text-institutional-blue">{offer.titre}</h3>
+                      <h3 className="mt-1 font-semibold text-institutional-black">{offer.titre}</h3>
                       <p className="mt-2 text-sm text-dark-text/60">{offer.organisation}</p>
                       {offer.date_fin && (
                         <p className="mt-2 text-xs text-dark-text/50">Clôture : {new Date(offer.date_fin).toLocaleDateString('fr-FR')}</p>
@@ -59,7 +59,7 @@ export function TrainingDirectoryPage() {
                 </div>
               )}
 
-              <h2 className="mb-6 text-xl font-semibold text-institutional-blue">Institutions</h2>
+              <h2 className="mb-6 text-xl font-semibold text-institutional-black">Institutions</h2>
               {institutions.length === 0 ? (
                 <EmptyState
                   title="Aucun établissement"
@@ -75,7 +75,7 @@ export function TrainingDirectoryPage() {
                           <GraduationCap className="h-6 w-6" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-institutional-blue">{inst.titre}</h3>
+                          <h3 className="font-semibold text-institutional-black">{inst.titre}</h3>
                           <p className="text-sm text-dark-text/60">{inst.categorie || 'Institution'} — {inst.lieu || inst.organisation}</p>
                           <p className="mt-2 text-sm text-dark-text/70">{inst.resume}</p>
                           {inst.lieu && (

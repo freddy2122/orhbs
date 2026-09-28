@@ -21,9 +21,9 @@ export type HealthFacility = {
 }
 
 export const FACILITY_TYPE_COLORS: Record<FacilityType, string> = {
-  CHU: '#0B3A66',
-  HZ: '#0F7B4F',
-  CSCOM: '#D6A43A',
+  CHU: '#000000',
+  HZ: '#006828',
+  CSCOM: '#FFBE00',
   Clinique: '#7C3AED',
 }
 

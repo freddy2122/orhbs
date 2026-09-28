@@ -59,7 +59,7 @@ export function NewsletterForm({
       </div>
       <button
         type="submit"
-        className={`inline-flex items-center justify-center gap-2 rounded-lg bg-health-green font-semibold text-white transition-colors hover:bg-[#0d6b45] disabled:opacity-50 ${compact ? 'px-4 py-2.5 text-sm' : 'w-full py-3 text-sm'}`}
+        className={`inline-flex items-center justify-center gap-2 rounded-lg bg-health-green font-semibold text-white transition-colors hover:bg-[#005a23] disabled:opacity-50 ${compact ? 'px-4 py-2.5 text-sm' : 'w-full py-3 text-sm'}`}
         disabled={saving}
       >
         <Mail className="h-4 w-4" />

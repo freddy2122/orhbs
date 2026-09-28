@@ -19,6 +19,9 @@ frontend/dist/
 frontend/.env
 frontend/.env.local
 
+# Documents de référence (gros PDF, pas du code)
+OBSERVOIRE-CHARTE GRAPHIQUE/
+
 # IDE & OS
 .idea/
 .vscode/

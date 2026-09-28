@@ -104,14 +104,14 @@ export function MonitoringPanel() {
         ].map((card) => (
           <div key={card.label} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
             <p className="text-xs uppercase text-dark-text/50">{card.label}</p>
-            <p className="mt-1 text-xl font-bold text-institutional-blue">{card.value}</p>
+            <p className="mt-1 text-xl font-bold text-institutional-black">{card.value}</p>
           </div>
         ))}
       </div>
 
       <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-sm font-semibold text-institutional-blue">Sauvegardes</h3>
+          <h3 className="text-sm font-semibold text-institutional-black">Sauvegardes</h3>
           <button
             type="button"
             onClick={handleBackup}

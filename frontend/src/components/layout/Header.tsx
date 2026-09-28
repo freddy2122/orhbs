@@ -71,7 +71,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
               className="h-10 w-10 shrink-0 rounded-full object-contain ring-1 ring-[#e8ecf0] sm:h-11 sm:w-11"
             />
             <div className="min-w-0 border-l border-[#e8ecf0] pl-2.5 sm:pl-3">
-              <p className="truncate text-sm font-semibold leading-tight text-institutional-blue sm:text-base lg:text-lg">
+              <p className="truncate text-sm font-semibold leading-tight text-institutional-black sm:text-base lg:text-lg">
                 ORHS Bénin
               </p>
             </div>
@@ -94,7 +94,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
           <div className="hidden items-center gap-2.5 lg:flex">
             <Link
               to="/espace-prive"
-              className="rounded bg-health-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d6b45]"
+              className="rounded bg-health-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23]"
             >
               Espace privé
             </Link>
@@ -102,7 +102,7 @@ export function Header({ activeItem = 'accueil' }: HeaderProps) {
 
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded border border-[#e8ecf0] p-2 text-institutional-blue transition-colors hover:bg-light-gray lg:hidden"
+            className="inline-flex items-center justify-center rounded border border-[#e8ecf0] p-2 text-institutional-black transition-colors hover:bg-light-gray lg:hidden"
             onClick={() => setMobileOpen((open) => !open)}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"

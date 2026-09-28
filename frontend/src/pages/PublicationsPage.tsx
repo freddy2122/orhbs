@@ -18,7 +18,7 @@ export function PublicationsPage() {
           <RssLink />
           <Link
             to="/publications/archives"
-            className="inline-flex items-center gap-2 text-sm font-medium text-institutional-blue hover:text-health-green"
+            className="inline-flex items-center gap-2 text-sm font-medium text-institutional-black hover:text-health-green"
           >
             <Archive className="h-4 w-4" /> Archives (avant 2020)
           </Link>

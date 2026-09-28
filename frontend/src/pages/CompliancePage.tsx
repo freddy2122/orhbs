@@ -61,7 +61,7 @@ function RegistryResult({ entry }: { entry: RegistryEntry }) {
               <p className={`text-sm font-semibold ${entry.status === 'inscrit' ? 'text-green-800' : entry.status === 'suspendu' ? 'text-amber-800' : 'text-red-800'}`}>
                 {style.label}
               </p>
-              <h3 className="mt-1 text-lg font-bold text-institutional-blue">{displayName}</h3>
+              <h3 className="mt-1 text-lg font-bold text-institutional-black">{displayName}</h3>
               {entry.registrationNumber !== '—' && (
                 <p className="mt-0.5 font-mono text-sm text-dark-text/70">N° {entry.registrationNumber}</p>
               )}
@@ -97,7 +97,7 @@ function RegistryResult({ entry }: { entry: RegistryEntry }) {
           {mapUrl && (
             <Link
               to={mapUrl}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#092d52]"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1a1a1a]"
             >
               <MapPin className="h-4 w-4" />
               Voir sur la carte
@@ -271,7 +271,7 @@ export function CompliancePage() {
         description="Recherche avancée dans l'annuaire des Ordres Nationaux — médecins et cliniques légalement inscrits."
       />
 
-      <section className="border-b border-[#e8ecf0] bg-institutional-blue py-8">
+      <section className="border-b border-[#e8ecf0] bg-institutional-black py-8">
         <div className="mx-auto grid max-w-4xl grid-cols-3 gap-4 px-4 sm:px-6">
           {[
             { label: 'Médecins inscrits', value: stats.medecins, icon: GraduationCap },
@@ -316,7 +316,7 @@ export function CompliancePage() {
           <form onSubmit={handleSearch} className="rounded-xl border border-[#e8ecf0] bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-health-green" />
-              <h2 className="font-semibold text-institutional-blue">Rechercher dans l&apos;annuaire</h2>
+              <h2 className="font-semibold text-institutional-black">Rechercher dans l&apos;annuaire</h2>
             </div>
 
             <div className="mb-4 flex flex-wrap gap-2">
@@ -349,7 +349,7 @@ export function CompliancePage() {
               <button
                 type="submit"
                 disabled={searching}
-                className="inline-flex items-center gap-2 rounded-lg bg-health-green px-5 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-health-green px-5 py-3 text-sm font-semibold text-white hover:bg-[#005a23] disabled:opacity-50"
               >
                 <Search className="h-4 w-4" /> Vérifier
               </button>
@@ -358,7 +358,7 @@ export function CompliancePage() {
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-institutional-blue hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-institutional-black hover:underline"
             >
               {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               Recherche avancée

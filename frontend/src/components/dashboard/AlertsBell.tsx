@@ -56,7 +56,7 @@ export function AlertsBell({ role, structureId }: { role: DashboardRole | null; 
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <Bell className="h-5 w-5 text-institutional-blue" />
+        <Bell className="h-5 w-5 text-institutional-black" />
         {!loading && count > 0 && (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
             {count > 9 ? '9+' : count}
@@ -67,7 +67,7 @@ export function AlertsBell({ role, structureId }: { role: DashboardRole | null; 
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-[#e8ecf0] bg-white shadow-lg sm:w-96">
           <div className="flex items-center justify-between border-b border-[#e8ecf0] px-4 py-3">
-            <p className="text-sm font-semibold text-institutional-blue">Alertes</p>
+            <p className="text-sm font-semibold text-institutional-black">Alertes</p>
             {loading && <Spinner className="h-4 w-4 text-health-green" />}
           </div>
 

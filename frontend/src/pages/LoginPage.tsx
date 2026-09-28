@@ -52,7 +52,7 @@ export function LoginPage() {
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-institutional-blue/80" />
+        <div className="absolute inset-0 bg-institutional-black/80" />
         <div className="absolute inset-0 bg-black/30" />
 
         <div className="relative z-10 flex h-full flex-col justify-between p-8 xl:p-12">
@@ -90,7 +90,7 @@ export function LoginPage() {
         <div className="flex items-center justify-between border-b border-[#e8ecf0] px-6 py-4 lg:hidden">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-institutional-blue"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-institutional-black"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Accueil
@@ -123,7 +123,7 @@ export function LoginPage() {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-health-green">
                 Accès sécurisé
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-institutional-blue sm:text-3xl">
+              <h2 className="mt-2 text-2xl font-bold text-institutional-black sm:text-3xl">
                 Espace privé
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-dark-text/65">
@@ -172,7 +172,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-health-green py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d6b45] disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-health-green py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitting ? (
                   <Spinner className="h-4 w-4" label="Accès en cours…" />

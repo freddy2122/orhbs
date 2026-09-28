@@ -59,9 +59,9 @@ export function ContactPage() {
                       <div>
                         <h2 className="text-sm font-medium uppercase tracking-wider text-dark-text/50">{info.title}</h2>
                         {info.href ? (
-                          <a href={info.href} className="mt-1 block font-medium text-institutional-blue hover:text-health-green">{info.value}</a>
+                          <a href={info.href} className="mt-1 block font-medium text-institutional-black hover:text-health-green">{info.value}</a>
                         ) : (
-                          <p className="mt-1 font-medium text-institutional-blue">{info.value}</p>
+                          <p className="mt-1 font-medium text-institutional-black">{info.value}</p>
                         )}
                       </div>
                     </div>
@@ -69,7 +69,7 @@ export function ContactPage() {
                 })}
               </div>
               <form className="rounded-lg border border-[#e8ecf0] bg-white p-6 shadow-sm sm:p-8" onSubmit={(e) => e.preventDefault()}>
-                <h2 className="text-lg font-semibold text-institutional-blue">Envoyer un message</h2>
+                <h2 className="text-lg font-semibold text-institutional-black">Envoyer un message</h2>
                 <div className="mt-6 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -96,7 +96,7 @@ export function ContactPage() {
                     <textarea id="message" rows={5} className="w-full rounded border border-[#dde3ea] px-3 py-2 text-sm" required />
                   </div>
                   <p className="text-xs text-dark-text/50">reCAPTCHA v3 sera intégré en production.</p>
-                  <button type="submit" className="rounded bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]">
+                  <button type="submit" className="rounded bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#005a23]">
                     Envoyer
                   </button>
                 </div>
@@ -107,7 +107,7 @@ export function ContactPage() {
           {tab === 'data' && (
             <div className="text-center">
               <p className="mb-4 text-sm text-dark-text/70">Demande d&apos;accès aux données pour chercheurs et partenaires.</p>
-              <Link to="/demande-acces" className="inline-flex rounded-lg bg-institutional-blue px-6 py-3 text-sm font-semibold text-white hover:bg-[#092d52]">
+              <Link to="/demande-acces" className="inline-flex rounded-lg bg-institutional-black px-6 py-3 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
                 Accéder au formulaire de demande
               </Link>
             </div>
@@ -116,7 +116,7 @@ export function ContactPage() {
           {tab === 'focal' && (
             <div className="text-center">
               <p className="mb-4 text-sm text-dark-text/70">Rejoindre le réseau de collecte des données RHS.</p>
-              <Link to="/inscription-point-focal" className="inline-flex rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]">
+              <Link to="/inscription-point-focal" className="inline-flex rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#005a23]">
                 Formulaire d&apos;inscription
               </Link>
             </div>

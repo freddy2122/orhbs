@@ -103,7 +103,7 @@ export function PublicationDetailPage() {
           <div className="mt-8">
             <a
               href={publicPublicationDownloadUrl(pub.id)}
-              className="inline-flex items-center gap-2 rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]"
+              className="inline-flex items-center gap-2 rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#005a23]"
             >
               <Download className="h-4 w-4" /> Télécharger PDF (gratuit)
             </a>
@@ -113,7 +113,7 @@ export function PublicationDetailPage() {
         <p className="mt-6 text-xs text-dark-text/50">{PUBLIC_DATA_NOTICE}</p>
 
         <nav className="mt-12 border-t border-[#e8ecf0] pt-8">
-          <Link to="/publications" className="inline-flex items-center gap-2 text-sm font-medium text-institutional-blue hover:text-health-green">
+          <Link to="/publications" className="inline-flex items-center gap-2 text-sm font-medium text-institutional-black hover:text-health-green">
             <ArrowLeft className="h-4 w-4" /> Retour au catalogue
           </Link>
         </nav>

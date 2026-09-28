@@ -73,7 +73,7 @@ export function InteroperabilityPage() {
             type="button"
             onClick={reload}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#005a23] disabled:opacity-60"
           >
             <RefreshCw className="h-4 w-4" /> Actualiser
           </button>
@@ -97,11 +97,11 @@ export function InteroperabilityPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
                     <Database className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-institutional-blue">{source.name}</h3>
+                    <h3 className="font-semibold text-institutional-black">{source.name}</h3>
                     <p className="text-xs text-dark-text/50">{source.description}</p>
                   </div>
                 </div>
@@ -127,7 +127,7 @@ export function InteroperabilityPage() {
 
         {historique.length > 0 && (
           <section className="mt-8">
-            <h2 className="mb-3 text-lg font-semibold text-institutional-blue">
+            <h2 className="mb-3 text-lg font-semibold text-institutional-black">
               Historique des imports Excel
             </h2>
             <div className="overflow-x-auto rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
@@ -163,7 +163,7 @@ export function InteroperabilityPage() {
 
         <section className="mt-8 rounded-xl border border-dashed border-[#dde3ea] bg-white p-8 text-center">
           <Upload className="mx-auto h-10 w-10 text-health-green" />
-          <h3 className="mt-3 font-semibold text-institutional-blue">
+          <h3 className="mt-3 font-semibold text-institutional-black">
             Import Excel — fiches agents
           </h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-dark-text/60">
@@ -183,7 +183,7 @@ export function InteroperabilityPage() {
             >
               Télécharger modèle
             </button>
-            <label className="cursor-pointer rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white hover:bg-[#092d52]">
+            <label className="cursor-pointer rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
               {importing ? (
                 <span className="inline-flex items-center gap-2">
                   <Spinner className="h-4 w-4" /> Import…

@@ -236,7 +236,7 @@ export function ChoroplethMap({
             setTooltip(null)
             onSelectDepartment?.(null)
           }}
-          className={`font-medium ${viewLevel === 'national' ? 'text-health-green' : 'text-institutional-blue hover:underline'}`}
+          className={`font-medium ${viewLevel === 'national' ? 'text-health-green' : 'text-institutional-black hover:underline'}`}
         >
           National
         </button>
@@ -250,7 +250,7 @@ export function ChoroplethMap({
                 setSelectedCommuneId(null)
                 setTooltip(buildTooltip(selectedDept, sector, selectedDept.nationalRank))
               }}
-              className={`font-medium ${viewLevel === 'department' && !selectedCommuneId ? 'text-health-green' : 'text-institutional-blue hover:underline'}`}
+              className={`font-medium ${viewLevel === 'department' && !selectedCommuneId ? 'text-health-green' : 'text-institutional-black hover:underline'}`}
             >
               {selectedDept.name}
             </button>
@@ -280,7 +280,7 @@ export function ChoroplethMap({
               setViewLevel('national')
               setSelectedCommuneId(null)
             }}
-            className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-institutional-blue"
+            className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-institutional-black"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Vue nationale
           </button>
@@ -313,7 +313,7 @@ export function ChoroplethMap({
                     <path
                       d={dept.path}
                       fill={getChoroplethFill(density, maxDensity)}
-                      stroke={isActive ? '#0F7B4F' : '#ffffff'}
+                      stroke={isActive ? '#006828' : '#ffffff'}
                       strokeWidth={isActive ? 3 : 2}
                       className="cursor-pointer transition-opacity hover:opacity-90"
                       onClick={() => handleDeptClick(dept)}
@@ -351,7 +351,7 @@ export function ChoroplethMap({
                       height={h}
                       rx={4}
                       fill={getChoroplethFill(density, maxDensity)}
-                      stroke={isActive ? '#0F7B4F' : '#ffffff'}
+                      stroke={isActive ? '#006828' : '#ffffff'}
                       strokeWidth={isActive ? 3 : 2}
                       className="cursor-pointer"
                       onClick={() => handleCommuneClick(commune)}
@@ -372,7 +372,7 @@ export function ChoroplethMap({
                 (t) => viewLevel === 'national' || t.departmentId === selectedDeptId,
               ).map((inst) => (
                 <g key={inst.id}>
-                  <circle cx={inst.lat} cy={inst.lng} r={6} fill="#D6A43A" stroke="#fff" strokeWidth={2} />
+                  <circle cx={inst.lat} cy={inst.lng} r={6} fill="#FFBE00" stroke="#fff" strokeWidth={2} />
                   <title>{inst.name}</title>
                 </g>
               ))}
@@ -404,7 +404,7 @@ export function ChoroplethMap({
                   <p className="text-xs font-medium uppercase tracking-wider text-health-green">
                     {tooltip.level}
                   </p>
-                  <h3 className="text-xl font-semibold text-institutional-blue">{tooltip.name}</h3>
+                  <h3 className="text-xl font-semibold text-institutional-black">{tooltip.name}</h3>
                 </div>
               </div>
               <dl className="space-y-3 text-sm">

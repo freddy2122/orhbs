@@ -117,10 +117,10 @@ export function CompetencesPage() {
                     key={s.id}
                     className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm"
                   >
-                    <span className="rounded bg-institutional-blue/10 px-2 py-0.5 text-xs font-medium text-institutional-blue">
+                    <span className="rounded bg-institutional-black/10 px-2 py-0.5 text-xs font-medium text-institutional-black">
                       {s.specialite}
                     </span>
-                    <h3 className="mt-2 font-semibold text-institutional-blue">{s.agent}</h3>
+                    <h3 className="mt-2 font-semibold text-institutional-black">{s.agent}</h3>
                     <p className="text-sm text-dark-text/60">{s.profession}</p>
                     <p className="mt-1 font-mono text-xs text-dark-text/45">{s.matricule}</p>
                     <p className="mt-2 text-xs text-dark-text/45">

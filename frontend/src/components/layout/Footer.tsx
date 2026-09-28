@@ -62,7 +62,7 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-auto bg-institutional-blue text-white">
+    <footer className="mt-auto bg-institutional-black text-white">
       <FlagBar />
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14">
@@ -153,7 +153,7 @@ export function Footer() {
               <li className="pt-2">
                 <Link
                   to="/espace-prive"
-                  className="inline-flex items-center rounded bg-health-green px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#0d6b45]"
+                  className="inline-flex items-center rounded bg-health-green px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005a23]"
                 >
                   Espace privé
                 </Link>

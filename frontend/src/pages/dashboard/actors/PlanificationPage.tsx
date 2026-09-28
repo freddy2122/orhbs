@@ -62,7 +62,7 @@ export function PlanificationPage() {
 
       <StatsState loading={loading} error={error} onRetry={reload}>
         <section className="mb-8">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-institutional-blue">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-institutional-black">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             Alertes départs à la retraite
           </h2>
@@ -83,7 +83,7 @@ export function PlanificationPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-semibold text-institutional-blue">{alert.agent}</p>
+                      <p className="font-semibold text-institutional-black">{alert.agent}</p>
                       <p className="text-sm text-dark-text/60">
                         {alert.profession} — {alert.structure}
                       </p>
@@ -110,7 +110,7 @@ export function PlanificationPage() {
         </section>
 
         <section>
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-institutional-blue">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-institutional-black">
             <Target className="h-5 w-5 text-health-green" />
             Besoins en recrutement par zone
           </h2>
@@ -131,7 +131,7 @@ export function PlanificationPage() {
                     <Bar
                       dataKey="total"
                       name="Postes à pourvoir (estimés)"
-                      fill="#0F7B4F"
+                      fill="#006828"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>

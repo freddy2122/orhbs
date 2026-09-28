@@ -64,7 +64,7 @@ export function DashboardLayout() {
           <div className="flex items-center gap-2">
             <img src={LOGOS.orhsb} alt="" className="h-9 w-9 rounded-full" />
             <div>
-              <p className="text-sm font-semibold text-institutional-blue">ORHS</p>
+              <p className="text-sm font-semibold text-institutional-black">ORHS</p>
               <p className="text-[10px] text-dark-text/50">
                 {isActorsSpace ? 'Espace acteurs' : 'Espace sécurisé'}
               </p>
@@ -79,7 +79,7 @@ export function DashboardLayout() {
           <p className="text-[10px] font-medium uppercase tracking-wider text-dark-text/50">
             Profil connecté
           </p>
-          <p className="mt-1 text-sm font-semibold text-institutional-blue">{user.full_name}</p>
+          <p className="mt-1 text-sm font-semibold text-institutional-black">{user.full_name}</p>
           <p className="text-xs text-health-green">{roleMeta.label}</p>
           <p className="mt-1 text-[10px] text-dark-text/45">{scopeLabel}</p>
           {user.profile.poste && (
@@ -102,7 +102,7 @@ export function DashboardLayout() {
                       `flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                         isActive
                           ? 'bg-health-green/10 text-health-green'
-                          : 'text-dark-text/70 hover:bg-light-gray hover:text-institutional-blue'
+                          : 'text-dark-text/70 hover:bg-light-gray hover:text-institutional-black'
                       }`
                     }
                   >
@@ -138,17 +138,17 @@ export function DashboardLayout() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button type="button" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-                <Menu className="h-5 w-5 text-institutional-blue" />
+                <Menu className="h-5 w-5 text-institutional-black" />
               </button>
               <div>
                 <p className="text-xs text-dark-text/50">Dernière actualisation</p>
-                <p className="text-sm font-medium text-institutional-blue">{lastUpdateLabel}</p>
+                <p className="text-sm font-medium text-institutional-black">{lastUpdateLabel}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <AlertsBell role={role} structureId={user.profile.structure?.id ?? null} />
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-medium text-institutional-blue">{user.full_name}</p>
+                <p className="text-sm font-medium text-institutional-black">{user.full_name}</p>
                 <p className="text-xs text-health-green">{roleMeta.label}</p>
               </div>
             </div>

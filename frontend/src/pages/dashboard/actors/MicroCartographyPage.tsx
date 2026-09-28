@@ -97,7 +97,7 @@ export function MicroCartographyPage() {
                     {
                       label: 'Total agents',
                       value: structure.effectif_total,
-                      color: 'text-institutional-blue',
+                      color: 'text-institutional-black',
                     },
                     { label: 'Médecins', value: structure.medecins, color: 'text-health-green' },
                     { label: 'Infirmiers', value: structure.infirmiers, color: 'text-health-green' },
@@ -133,7 +133,7 @@ export function MicroCartographyPage() {
                 </div>
 
                 <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-                  <h3 className="mb-4 font-semibold text-institutional-blue">
+                  <h3 className="mb-4 font-semibold text-institutional-black">
                     Répartition — {structure.structure.nom}
                   </h3>
                   {chartData.length === 0 ? (
@@ -155,7 +155,7 @@ export function MicroCartographyPage() {
                             tick={{ fontSize: 10 }}
                           />
                           <Tooltip />
-                          <Bar dataKey="effectif" fill="#0B3A66" radius={[0, 4, 4, 0]} />
+                          <Bar dataKey="effectif" fill="#000000" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

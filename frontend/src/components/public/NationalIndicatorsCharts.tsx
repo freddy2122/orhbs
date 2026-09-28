@@ -20,8 +20,8 @@ import { OMS_DOCTOR_RATIO_THRESHOLD } from '../../lib/security'
 import { fetchPublicNationalStats } from '../../lib/public-api'
 import type { NationalStats } from '../../types/stats'
 
-const COLORS = ['#0F7B4F', '#0B3A66', '#D6A43A', '#6B7280']
-const SECTOR_COLORS = ['#0F7B4F', '#0B3A66', '#D6A43A']
+const COLORS = ['#006828', '#000000', '#FFBE00', '#6B7280']
+const SECTOR_COLORS = ['#006828', '#000000', '#FFBE00']
 
 function professionsFromStats(stats: NationalStats) {
   const autres = Math.max(
@@ -126,7 +126,7 @@ export function NationalIndicatorsCharts() {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <article className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-        <h3 className="mb-1 font-semibold text-institutional-blue">Densité médicale (pour 10 000 hab.)</h3>
+        <h3 className="mb-1 font-semibold text-institutional-black">Densité médicale (pour 10 000 hab.)</h3>
         <p className="mb-4 text-xs text-dark-text/50">
           Seuil indicatif OMS médecins : {OMS_DOCTOR_RATIO_THRESHOLD} / 10 000 hab.
         </p>
@@ -138,16 +138,16 @@ export function NationalIndicatorsCharts() {
               <YAxis tick={{ fontSize: 11 }} domain={[0, 'auto']} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="medecins" name="Médecins" stroke="#0F7B4F" strokeWidth={2} dot={{ r: 4 }} />
-              <Line type="monotone" dataKey="infirmiers" name="Infirmiers" stroke="#0B3A66" strokeWidth={2} dot={{ r: 4 }} />
-              <Line type="monotone" dataKey="sagesFemmes" name="Sages-femmes" stroke="#D6A43A" strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="medecins" name="Médecins" stroke="#006828" strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="infirmiers" name="Infirmiers" stroke="#000000" strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="sagesFemmes" name="Sages-femmes" stroke="#FFBE00" strokeWidth={2} dot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </article>
 
       <article className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-        <h3 className="mb-4 font-semibold text-institutional-blue">Répartition par grand corps de métier</h3>
+        <h3 className="mb-4 font-semibold text-institutional-black">Répartition par grand corps de métier</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={professionData} layout="vertical">
@@ -168,7 +168,7 @@ export function NationalIndicatorsCharts() {
       <article className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm lg:col-span-2">
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
-            <h3 className="mb-4 font-semibold text-institutional-blue">Répartition par secteur d&apos;exercice</h3>
+            <h3 className="mb-4 font-semibold text-institutional-black">Répartition par secteur d&apos;exercice</h3>
             {sectorData.length === 0 ? (
               <EmptyState
                 title="Aucune donnée sectorielle"

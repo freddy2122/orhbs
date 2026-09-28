@@ -82,7 +82,7 @@ export function AnalyseDashboardPage() {
             type="button"
             onClick={() => setTab(t.id)}
             className={`rounded-lg px-3 py-2 text-sm font-medium ${
-              tab === t.id ? 'bg-institutional-blue text-white' : 'bg-white text-dark-text/70 border border-[#e8ecf0] hover:bg-light-gray'
+              tab === t.id ? 'bg-institutional-black text-white' : 'bg-white text-dark-text/70 border border-[#e8ecf0] hover:bg-light-gray'
             }`}
           >
             {t.label}
@@ -101,7 +101,7 @@ export function AnalyseDashboardPage() {
         >
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-institutional-blue">
+              <h2 className="mb-4 font-semibold text-institutional-black">
                 Médecins par département (validés)
               </h2>
               <div className="h-72">
@@ -111,13 +111,13 @@ export function AnalyseDashboardPage() {
                     <XAxis type="number" tick={{ fontSize: 11 }} />
                     <YAxis dataKey="dept" type="category" width={80} tick={{ fontSize: 10 }} />
                     <Tooltip />
-                    <Bar dataKey="medecins" name="Médecins" fill="#0F7B4F" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="medecins" name="Médecins" fill="#006828" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </section>
             <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-institutional-blue">
+              <h2 className="mb-4 font-semibold text-institutional-black">
                 Répartition nationale par profession
               </h2>
               <div className="h-72">
@@ -127,7 +127,7 @@ export function AnalyseDashboardPage() {
                     <XAxis dataKey="categorie" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(v) => formatNumber(Number(v))} />
-                    <Bar dataKey="effectif" fill="#0B3A66" name="Effectif" />
+                    <Bar dataKey="effectif" fill="#000000" name="Effectif" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -153,7 +153,7 @@ export function AnalyseDashboardPage() {
             }
             return (
               <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-                <h2 className="mb-4 font-semibold text-institutional-blue">Pyramide des âges (agents en base)</h2>
+                <h2 className="mb-4 font-semibold text-institutional-black">Pyramide des âges (agents en base)</h2>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
@@ -161,7 +161,7 @@ export function AnalyseDashboardPage() {
                       <XAxis dataKey="tranche" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} />
                       <Tooltip formatter={(v) => formatNumber(Number(v))} />
-                      <Bar dataKey="effectif" fill="#0F7B4F" name="Agents" />
+                      <Bar dataKey="effectif" fill="#006828" name="Agents" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -235,7 +235,7 @@ export function AnalyseDashboardPage() {
                 ].map((item) => (
                   <div key={item.label} className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
                     <p className="text-xs uppercase text-dark-text/50">{item.label}</p>
-                    <p className="mt-2 text-3xl font-bold text-institutional-blue">{String(item.value)}</p>
+                    <p className="mt-2 text-3xl font-bold text-institutional-black">{String(item.value)}</p>
                     <p className={`mt-2 text-sm ${item.ok ? 'text-health-green' : 'text-amber-700'}`}>
                       {item.ok ? 'Conforme à la référence OMS' : 'Sous le seuil de référence OMS'}
                     </p>
@@ -267,7 +267,7 @@ export function AnalyseDashboardPage() {
               <div className="space-y-6">
                 {evolution?.length ? (
                   <section className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-                    <h2 className="mb-4 font-semibold text-institutional-blue">Évolution des effectifs validés</h2>
+                    <h2 className="mb-4 font-semibold text-institutional-black">Évolution des effectifs validés</h2>
                     <div className="h-72">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={evolution}>
@@ -275,7 +275,7 @@ export function AnalyseDashboardPage() {
                           <XAxis dataKey="annee" tick={{ fontSize: 11 }} />
                           <YAxis tick={{ fontSize: 11 }} />
                           <Tooltip formatter={(v) => formatNumber(Number(v))} />
-                          <Bar dataKey="effectif" fill="#0B3A66" name="Effectif" />
+                          <Bar dataKey="effectif" fill="#000000" name="Effectif" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -292,7 +292,7 @@ export function AnalyseDashboardPage() {
                     ].map(([label, value]) => (
                       <div key={String(label)} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
                         <p className="text-xs uppercase text-dark-text/50">Départs retraite {label}</p>
-                        <p className="mt-2 text-2xl font-bold text-institutional-blue">{formatNumber(Number(value ?? 0))}</p>
+                        <p className="mt-2 text-2xl font-bold text-institutional-black">{formatNumber(Number(value ?? 0))}</p>
                       </div>
                     ))}
                   </section>

@@ -83,7 +83,7 @@ export function ValidationDashboardPage() {
 
             <div className="grid gap-6 lg:grid-cols-5">
               <section className="lg:col-span-2 rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
-                <h2 className="border-b border-[#e8ecf0] px-4 py-3 text-sm font-semibold text-institutional-blue">
+                <h2 className="border-b border-[#e8ecf0] px-4 py-3 text-sm font-semibold text-institutional-black">
                   File d&apos;attente ({queue.length})
                 </h2>
                 {queue.length === 0 ? (
@@ -116,7 +116,7 @@ export function ValidationDashboardPage() {
               <section className="lg:col-span-3 rounded-xl border border-[#e8ecf0] bg-white p-6 shadow-sm">
                 {selected ? (
                   <>
-                    <h2 className="text-lg font-semibold text-institutional-blue">{selected.structure.nom}</h2>
+                    <h2 className="text-lg font-semibold text-institutional-black">{selected.structure.nom}</h2>
                     <p className="text-sm text-dark-text/55">
                       {selected.structure.zone_sanitaire?.nom ?? '—'} · {selected.structure.departement.nom}
                     </p>
@@ -130,7 +130,7 @@ export function ValidationDashboardPage() {
                       ].map(([label, val]) => (
                         <div key={String(label)} className="rounded-lg bg-light-gray/40 px-4 py-3">
                           <dt className="text-xs text-dark-text/50">{label}</dt>
-                          <dd className="text-lg font-semibold text-institutional-blue">{val}</dd>
+                          <dd className="text-lg font-semibold text-institutional-black">{val}</dd>
                         </div>
                       ))}
                     </dl>
@@ -141,7 +141,7 @@ export function ValidationDashboardPage() {
                             type="button"
                             disabled={actionLoading}
                             onClick={() => handleValidate(selected, 'approve', 'departement')}
-                            className="inline-flex items-center gap-2 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:opacity-60"
+                            className="inline-flex items-center gap-2 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#005a23] disabled:opacity-60"
                           >
                             {actionLoading ? <Spinner className="h-4 w-4" /> : <Check className="h-4 w-4" />}
                             Valider (département)
@@ -161,7 +161,7 @@ export function ValidationDashboardPage() {
                           type="button"
                           disabled={actionLoading}
                           onClick={() => handleValidate(selected, 'approve', 'national')}
-                          className="inline-flex items-center gap-2 rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white hover:bg-[#092d52] disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white hover:bg-[#1a1a1a] disabled:opacity-60"
                         >
                           {actionLoading ? <Spinner className="h-4 w-4" /> : <Check className="h-4 w-4" />}
                           Validation nationale

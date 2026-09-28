@@ -58,7 +58,7 @@ export function GeographicMapSection() {
                     <g key={region.id}>
                       <path
                         d={region.path}
-                        fill={isSelected ? '#0F7B4F' : '#0B3A66'}
+                        fill={isSelected ? '#006828' : '#000000'}
                         fillOpacity={isSelected ? 1 : 0.65}
                         stroke="#ffffff"
                         strokeWidth="2"
@@ -87,26 +87,26 @@ export function GeographicMapSection() {
               <div className="rounded-xl border border-health-green/20 bg-health-green/5 p-6 sm:p-8">
                 <div className="mb-4 flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-health-green" aria-hidden="true" />
-                  <h3 className="text-xl font-semibold text-institutional-blue">
+                  <h3 className="text-xl font-semibold text-institutional-black">
                     {selected?.name ?? '—'}
                   </h3>
                 </div>
                 <dl className="space-y-4">
                   <div className="flex items-center justify-between border-b border-[#e8ecf0] pb-3">
                     <dt className="text-sm text-dark-text/70">Médecins</dt>
-                    <dd className="text-lg font-semibold text-institutional-blue">
+                    <dd className="text-lg font-semibold text-institutional-black">
                       {(selected?.sectors.public.medecins ?? 0).toLocaleString('fr-FR')}
                     </dd>
                   </div>
                   <div className="flex items-center justify-between border-b border-[#e8ecf0] pb-3">
                     <dt className="text-sm text-dark-text/70">Infirmiers</dt>
-                    <dd className="text-lg font-semibold text-institutional-blue">
+                    <dd className="text-lg font-semibold text-institutional-black">
                       {(selected?.sectors.public.infirmiers ?? 0).toLocaleString('fr-FR')}
                     </dd>
                   </div>
                   <div className="flex items-center justify-between">
                     <dt className="text-sm text-dark-text/70">Sages-femmes</dt>
-                    <dd className="text-lg font-semibold text-institutional-blue">
+                    <dd className="text-lg font-semibold text-institutional-black">
                       {(selected?.sectors.public.sagesFemmes ?? 0).toLocaleString('fr-FR')}
                     </dd>
                   </div>

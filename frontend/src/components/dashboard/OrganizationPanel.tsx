@@ -179,7 +179,7 @@ export function OrganizationPanel() {
 
   const renderActions = (kind: OrgKind, item: OrgItem) => (
     <div className="flex flex-wrap items-center gap-2">
-      <button type="button" onClick={() => handleEdit(kind, item)} className="text-xs text-institutional-blue hover:underline">
+      <button type="button" onClick={() => handleEdit(kind, item)} className="text-xs text-institutional-black hover:underline">
         Éditer
       </button>
       {isActive(item) ? (
@@ -228,15 +228,15 @@ export function OrganizationPanel() {
         ].map((item) => (
           <div key={item.label} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
             <p className="text-xs uppercase text-dark-text/50">{item.label}</p>
-            <p className="mt-3 text-2xl font-bold text-institutional-blue">{item.value}</p>
+            <p className="mt-3 text-2xl font-bold text-institutional-black">{item.value}</p>
           </div>
         ))}
       </div>
 
       <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-institutional-blue" />
-          <h2 className="text-lg font-semibold text-institutional-blue">
+          <MapPin className="h-5 w-5 text-institutional-black" />
+          <h2 className="text-lg font-semibold text-institutional-black">
             {editingId ? 'Modifier une entité' : 'Ajouter une entité'}
           </h2>
         </div>
@@ -360,7 +360,7 @@ export function OrganizationPanel() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#005a23] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {saving ? 'Enregistrement...' : editingId ? 'Mettre à jour' : 'Enregistrer'}
             </button>
@@ -386,7 +386,7 @@ export function OrganizationPanel() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-institutional-blue">Départements</h3>
+          <h3 className="mb-3 font-semibold text-institutional-black">Départements</h3>
           {loading ? (
             <p className="text-sm text-dark-text/60">Chargement...</p>
           ) : visible.departements.length === 0 ? (
@@ -411,7 +411,7 @@ export function OrganizationPanel() {
         </div>
 
         <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-institutional-blue">Zones sanitaires</h3>
+          <h3 className="mb-3 font-semibold text-institutional-black">Zones sanitaires</h3>
           {visible.zones.length === 0 ? (
             <p className="text-sm text-dark-text/60">Aucune zone enregistrée.</p>
           ) : (
@@ -434,7 +434,7 @@ export function OrganizationPanel() {
         </div>
 
         <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-institutional-blue">Structures</h3>
+          <h3 className="mb-3 font-semibold text-institutional-black">Structures</h3>
           {visible.structures.length === 0 ? (
             <p className="text-sm text-dark-text/60">Aucune structure enregistrée.</p>
           ) : (

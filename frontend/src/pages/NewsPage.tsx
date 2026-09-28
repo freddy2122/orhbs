@@ -85,7 +85,7 @@ export function NewsPage() {
               type="button"
               onClick={() => switchTab(t)}
               className={`shrink-0 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-                tab === t ? 'border-health-green text-health-green' : 'border-transparent text-dark-text/60 hover:text-institutional-blue'
+                tab === t ? 'border-health-green text-health-green' : 'border-transparent text-dark-text/60 hover:text-institutional-black'
               }`}
             >
               {TAB_LABELS[t]}
@@ -118,7 +118,7 @@ export function NewsPage() {
                     >
                       <div>
                         <span className="text-xs font-medium uppercase tracking-wider text-health-green">{article.categorie || 'Actualité'}</span>
-                        <h2 className="mt-1 text-lg font-semibold text-institutional-blue group-hover:text-health-green">{article.titre}</h2>
+                        <h2 className="mt-1 text-lg font-semibold text-institutional-black group-hover:text-health-green">{article.titre}</h2>
                         <p className="mt-2 line-clamp-2 text-sm text-dark-text/60">{article.resume}</p>
                         {article.date_publication && (
                           <time className="mt-2 block text-xs text-dark-text/50">{new Date(article.date_publication).toLocaleDateString('fr-FR')}</time>
@@ -129,7 +129,7 @@ export function NewsPage() {
                 )}
               </div>
               <aside className="rounded-xl border border-[#e8ecf0] bg-light-gray/30 p-6">
-                <h3 className="font-semibold text-institutional-blue">Newsletter</h3>
+                <h3 className="font-semibold text-institutional-black">Newsletter</h3>
                 <p className="mt-2 text-sm text-dark-text/60">Recevez publications et actualités par e-mail.</p>
                 <div className="mt-4"><NewsletterForm /></div>
               </aside>
@@ -145,8 +145,8 @@ export function NewsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {events.map((event) => (
                   <article key={event.id} className="rounded-lg border border-[#e8ecf0] bg-white p-6">
-                    <span className="rounded bg-gold-accent/15 px-2 py-0.5 text-xs font-medium text-[#9a7a2a]">{event.categorie || 'Événement'}</span>
-                    <h3 className="mt-2 font-semibold text-institutional-blue">{event.titre}</h3>
+                    <span className="rounded bg-gold-accent/15 px-2 py-0.5 text-xs font-medium text-gold-deep">{event.categorie || 'Événement'}</span>
+                    <h3 className="mt-2 font-semibold text-institutional-black">{event.titre}</h3>
                     {(event.date_debut || event.date_publication) && (
                       <p className="mt-3 flex items-center gap-2 text-sm text-dark-text/60">
                         <Calendar className="h-4 w-4" />
@@ -209,7 +209,7 @@ export function NewsPage() {
                           </span>
                         )}
                       </div>
-                      <h3 className="mt-3 text-lg font-semibold text-institutional-blue">{opp.titre}</h3>
+                      <h3 className="mt-3 text-lg font-semibold text-institutional-black">{opp.titre}</h3>
                       {opp.organisation && (
                         <p className="mt-1 flex items-center gap-1.5 text-sm text-dark-text/55">
                           <Briefcase className="h-4 w-4" /> {opp.organisation}
@@ -281,7 +281,7 @@ export function NewsDetailPage() {
           <p>{article.contenu || article.resume}</p>
         </div>
         <nav className="mt-12 border-t border-[#e8ecf0] pt-8">
-          <Link to="/actualites" className="inline-flex items-center gap-2 text-sm font-medium text-institutional-blue">
+          <Link to="/actualites" className="inline-flex items-center gap-2 text-sm font-medium text-institutional-black">
             <ArrowLeft className="h-4 w-4" /> Retour aux actualités
           </Link>
         </nav>

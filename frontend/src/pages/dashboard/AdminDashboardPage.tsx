@@ -274,7 +274,7 @@ export function AdminDashboardPage() {
               to={s.path}
               className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
                 isActive
-                  ? 'bg-institutional-blue text-white'
+                  ? 'bg-institutional-black text-white'
                   : 'border border-[#e8ecf0] bg-white text-dark-text/70 hover:bg-light-gray'
               }`}
             >
@@ -295,14 +295,14 @@ export function AdminDashboardPage() {
             ].map((m) => (
               <div key={m.label} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
                 <p className="text-xs uppercase text-dark-text/50">{m.label}</p>
-                <p className="mt-3 text-2xl font-bold text-institutional-blue">{m.value}</p>
+                <p className="mt-3 text-2xl font-bold text-institutional-black">{m.value}</p>
               </div>
             ))}
           </div>
 
           <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-institutional-blue">
+              <h2 className="text-lg font-semibold text-institutional-black">
                 {editingUserId ? 'Modifier un compte' : 'Créer un compte'}
               </h2>
             </div>
@@ -464,7 +464,7 @@ export function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#005a23] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {creating ? 'Enregistrement...' : editingUserId ? 'Mettre à jour' : 'Créer le compte'}
                 </button>
@@ -476,7 +476,7 @@ export function AdminDashboardPage() {
           </div>
 
           <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-institutional-blue">Utilisateurs enregistrés</h2>
+            <h2 className="mb-4 text-lg font-semibold text-institutional-black">Utilisateurs enregistrés</h2>
 
             {loading ? (
               <p className="text-sm text-dark-text/60">Chargement...</p>
@@ -516,7 +516,7 @@ export function AdminDashboardPage() {
                         <td className="px-3 py-3 text-dark-text/70">{user.email || '—'}</td>
                         <td className="px-3 py-3">
                           <div className="flex gap-2">
-                            <button type="button" onClick={() => handleEditUser(user)} className="text-xs text-institutional-blue hover:underline">
+                            <button type="button" onClick={() => handleEditUser(user)} className="text-xs text-institutional-black hover:underline">
                               Éditer
                             </button>
                             <button type="button" onClick={() => void handleDeleteUser(user)} className="text-xs text-red-600 hover:underline">
@@ -533,7 +533,7 @@ export function AdminDashboardPage() {
           </div>
 
           <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-            <h2 className="mb-3 font-semibold text-institutional-blue">7 rôles RBAC ORHS</h2>
+            <h2 className="mb-3 font-semibold text-institutional-black">7 rôles RBAC ORHS</h2>
             <div className="flex flex-wrap gap-2">
               {['Admin', 'Coordination', 'Analyste', 'Validateur', 'Collecteur', 'Décideur', 'Partenaire'].map((r) => (
                 <span key={r} className="rounded-full bg-light-gray px-3 py-1 text-xs font-medium text-dark-text/70">
@@ -550,11 +550,11 @@ export function AdminDashboardPage() {
       {activeSection === 'content' && (
         <div className="space-y-10">
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-institutional-blue">Publications</h2>
+            <h2 className="mb-4 text-lg font-semibold text-institutional-black">Publications</h2>
             <CmsContentPanel />
           </div>
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-institutional-blue">Contenu du site public</h2>
+            <h2 className="mb-4 text-lg font-semibold text-institutional-black">Contenu du site public</h2>
             <EditorialCmsPanel />
           </div>
         </div>

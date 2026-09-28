@@ -82,7 +82,7 @@ export function NewsletterPanel() {
 
   return (
     <div className="space-y-6">
-      <p className="rounded-lg bg-blue-50 px-4 py-3 text-sm text-institutional-blue">
+      <p className="rounded-lg bg-blue-50 px-4 py-3 text-sm text-institutional-black">
         Architecture prête, sans serveur SMTP. En local, Django affiche les e-mails dans le terminal
         (console). Branchez un SMTP réel plus tard via <code>EMAIL_HOST</code>.
       </p>
@@ -95,13 +95,13 @@ export function NewsletterPanel() {
         ].map((item) => (
           <div key={item.label} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
             <p className="text-xs uppercase text-dark-text/50">{item.label}</p>
-            <p className="mt-1 text-2xl font-bold text-institutional-blue">{item.value}</p>
+            <p className="mt-1 text-2xl font-bold text-institutional-black">{item.value}</p>
           </div>
         ))}
       </div>
 
       <form onSubmit={handleAdd} className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-institutional-blue">Ajouter un abonné</h3>
+        <h3 className="text-sm font-semibold text-institutional-black">Ajouter un abonné</h3>
         <div className="mt-3 flex flex-wrap gap-2">
           <input
             type="email"
@@ -122,7 +122,7 @@ export function NewsletterPanel() {
       </form>
 
       <form onSubmit={handleCampaign} className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-institutional-blue">Nouvelle campagne</h3>
+        <h3 className="text-sm font-semibold text-institutional-black">Nouvelle campagne</h3>
         <input
           required
           value={sujet}
@@ -141,7 +141,7 @@ export function NewsletterPanel() {
         <button
           type="submit"
           disabled={saving || stats.actifs === 0}
-          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
           {saving ? 'Envoi…' : 'Créer et envoyer aux abonnés actifs'}
@@ -158,7 +158,7 @@ export function NewsletterPanel() {
       ) : (
         <>
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-institutional-blue">Abonnés</h3>
+            <h3 className="mb-2 text-sm font-semibold text-institutional-black">Abonnés</h3>
             {abonnes.length === 0 ? (
               <EmptyState
                 title="Aucun abonné"
@@ -170,7 +170,7 @@ export function NewsletterPanel() {
                 {abonnes.map((item) => (
                   <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
                     <div>
-                      <p className="font-medium text-institutional-blue">{item.email}</p>
+                      <p className="font-medium text-institutional-black">{item.email}</p>
                       <p className="text-xs text-dark-text/50">
                         {item.source_label} · {item.actif ? 'Actif' : 'Désinscrit'}
                       </p>
@@ -190,11 +190,11 @@ export function NewsletterPanel() {
 
           {campagnes.length > 0 && (
             <section>
-              <h3 className="mb-2 text-sm font-semibold text-institutional-blue">Campagnes</h3>
+              <h3 className="mb-2 text-sm font-semibold text-institutional-black">Campagnes</h3>
               <ul className="divide-y divide-[#e8ecf0] rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
                 {campagnes.map((item) => (
                   <li key={item.id} className="px-4 py-3">
-                    <p className="font-medium text-institutional-blue">{item.sujet}</p>
+                    <p className="font-medium text-institutional-black">{item.sujet}</p>
                     <p className="text-xs text-dark-text/50">
                       {item.statut_label} · {item.envoyes}/{item.destinataires_prevus} envoyés
                       {item.erreurs ? ` · ${item.erreurs} erreur(s)` : ''}

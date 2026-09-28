@@ -49,7 +49,7 @@ export function AboutPage() {
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-health-green/10 text-health-green">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </div>
-                  <h2 className="text-base font-semibold text-institutional-blue">
+                  <h2 className="text-base font-semibold text-institutional-black">
                     {item.title}
                   </h2>
                   <p className="mt-2 text-sm leading-relaxed text-dark-text/70">
@@ -64,7 +64,7 @@ export function AboutPage() {
 
       <section className="bg-surface-muted py-14 sm:py-16" id="missions">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-8 text-2xl font-semibold text-institutional-blue">
+          <h2 className="mb-8 text-2xl font-semibold text-institutional-black">
             Nos missions
           </h2>
           <div className="grid gap-6 sm:grid-cols-2">
@@ -75,11 +75,11 @@ export function AboutPage() {
                   key={card.id}
                   className="flex gap-4 rounded-lg border border-[#e8ecf0] bg-white p-6"
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
                     <Icon className="h-6 w-6" strokeWidth={1.75} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-institutional-blue">
+                    <h3 className="font-semibold text-institutional-black">
                       {card.title}
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-dark-text/70">
@@ -95,14 +95,14 @@ export function AboutPage() {
 
       <section className="bg-white py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-8 text-2xl font-semibold text-institutional-blue">Organigramme</h2>
+          <h2 className="mb-8 text-2xl font-semibold text-institutional-black">Organigramme</h2>
           <OrgChart data={ORG_CHART} />
         </div>
       </section>
 
       <section className="bg-surface-muted py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="text-2xl font-semibold text-institutional-blue">Galerie photos</h2>
+          <h2 className="text-2xl font-semibold text-institutional-black">Galerie photos</h2>
           <p className="mb-8 mt-2 text-sm text-dark-text/60">
             Photos d&apos;illustration. Les archives photographiques officielles des activités de l&apos;ORHS seront publiées ici.
           </p>
@@ -110,7 +110,7 @@ export function AboutPage() {
             {GALLERY_ITEMS.map((item) => (
               <figure key={item.id} className="overflow-hidden rounded-lg border border-[#e8ecf0] bg-white">
                 <img src={item.src} alt={item.title} className="aspect-video w-full object-cover" />
-                <figcaption className="p-3 text-sm font-medium text-institutional-blue">{item.title}</figcaption>
+                <figcaption className="p-3 text-sm font-medium text-institutional-black">{item.title}</figcaption>
               </figure>
             ))}
           </div>

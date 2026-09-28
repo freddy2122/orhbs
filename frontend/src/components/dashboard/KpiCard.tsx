@@ -11,7 +11,7 @@ type KpiCardProps = {
 
 const statusStyles: Record<KpiStatus, { border: string; icon: typeof CheckCircle; iconColor: string }> = {
   ok: { border: 'border-l-health-green', icon: CheckCircle, iconColor: 'text-health-green' },
-  warn: { border: 'border-l-gold-accent', icon: TrendingUp, iconColor: 'text-gold-accent' },
+  warn: { border: 'border-l-gold-deep', icon: TrendingUp, iconColor: 'text-gold-deep' },
   alert: { border: 'border-l-red-500', icon: AlertTriangle, iconColor: 'text-red-500' },
 }
 
@@ -25,7 +25,7 @@ export function KpiCard({ label, value, trend, status }: KpiCardProps) {
         <p className="text-xs font-medium uppercase tracking-wide text-dark-text/50">{label}</p>
         <Icon className={`h-4 w-4 shrink-0 ${style.iconColor}`} />
       </div>
-      <p className="mt-2 text-2xl font-bold text-institutional-blue">{value}</p>
+      <p className="mt-2 text-2xl font-bold text-institutional-black">{value}</p>
       <p className="mt-1 flex items-center gap-1 text-xs text-dark-text/55">
         {status === 'alert' ? (
           <TrendingDown className="h-3 w-3 text-red-500" />

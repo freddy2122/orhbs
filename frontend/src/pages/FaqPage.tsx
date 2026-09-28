@@ -40,7 +40,7 @@ export function FaqPage() {
                   <button
                     type="button"
                     onClick={() => setOpen(open === i ? null : i)}
-                    className="flex w-full items-center justify-between px-5 py-4 text-left font-semibold text-institutional-blue"
+                    className="flex w-full items-center justify-between px-5 py-4 text-left font-semibold text-institutional-black"
                   >
                     {item.titre}
                     <ChevronDown className={`h-5 w-5 shrink-0 transition-transform ${open === i ? 'rotate-180' : ''}`} />

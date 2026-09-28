@@ -44,7 +44,7 @@ export function NewsEventsSection() {
                   <span className="text-xs font-medium uppercase tracking-wider text-health-green">
                     {item.categorie || item.type_contenu_label}
                   </span>
-                  <h3 className="mt-1 text-base font-semibold leading-snug text-institutional-blue group-hover:text-health-green">
+                  <h3 className="mt-1 text-base font-semibold leading-snug text-institutional-black group-hover:text-health-green">
                     {item.titre}
                   </h3>
                   {item.date_publication && (
@@ -61,7 +61,7 @@ export function NewsEventsSection() {
         <div className="mt-10 text-center">
           <a
             href="/actualites"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-institutional-blue transition-colors hover:text-health-green"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-institutional-black transition-colors hover:text-health-green"
           >
             Toutes les actualités
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

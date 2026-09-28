@@ -128,7 +128,7 @@ export function ReportsPanel() {
           type="button"
           onClick={generate}
           disabled={generating}
-          className="rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {generating ? 'Génération…' : 'Prévisualiser'}
         </button>
@@ -157,7 +157,7 @@ export function ReportsPanel() {
       {error && <p className="text-sm text-red-600">{error}</p>}
       {preview ? (
         <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-          <h3 className="font-semibold text-institutional-blue">{preview.nom_modele}</h3>
+          <h3 className="font-semibold text-institutional-black">{preview.nom_modele}</h3>
           <p className="mt-1 text-sm text-dark-text/60">
             {preview.campagne ?? 'Campagne active'} · {new Date(preview.date_generation).toLocaleString('fr-FR')}
           </p>
@@ -181,7 +181,7 @@ export function ReportsPanel() {
       )}
       {history.length > 0 && (
         <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 text-sm font-semibold text-institutional-blue">Historique des exports</h3>
+          <h3 className="mb-3 text-sm font-semibold text-institutional-black">Historique des exports</h3>
           <ul className="space-y-2 text-sm">
             {history.map((row) => (
               <li key={row.id} className="flex items-center justify-between gap-3">

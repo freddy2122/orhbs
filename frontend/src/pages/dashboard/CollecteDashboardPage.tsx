@@ -320,7 +320,7 @@ export function CollecteDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-health-green">Période en cours</p>
-                <h2 className="text-lg font-semibold text-institutional-blue">{campagneLabel}</h2>
+                <h2 className="text-lg font-semibold text-institutional-black">{campagneLabel}</h2>
               </div>
               {declarationId && (
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
@@ -354,7 +354,7 @@ export function CollecteDashboardPage() {
 
             {fieldSections.map((section) => (
               <fieldset key={section.title} className="space-y-4 border-t border-[#f0f2f5] pt-4">
-                <legend className="text-sm font-semibold text-institutional-blue">{section.title}</legend>
+                <legend className="text-sm font-semibold text-institutional-black">{section.title}</legend>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {section.fields.map((field) => (
                     <div key={field.key}>
@@ -417,7 +417,7 @@ export function CollecteDashboardPage() {
                 type="button"
                 disabled={saving || submitting}
                 onClick={handleSubmit}
-                className="inline-flex items-center gap-2 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6b45] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#005a23] disabled:opacity-60"
               >
                 {submitting ? <Spinner className="h-4 w-4" /> : null}
                 Soumettre pour validation
@@ -427,7 +427,7 @@ export function CollecteDashboardPage() {
 
           <aside className="space-y-4">
             <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-              <h3 className="font-semibold text-institutional-blue">Avancement par département</h3>
+              <h3 className="font-semibold text-institutional-black">Avancement par département</h3>
               {progress.loading ? (
                 <div className="mt-4 flex justify-center py-6">
                   <Spinner className="h-5 w-5 text-health-green" />
@@ -495,7 +495,7 @@ export function CollecteDashboardPage() {
       {activeTab === 'upload' && (
         <div className="mx-auto max-w-xl rounded-xl border-2 border-dashed border-[#dde3ea] bg-white p-10 text-center">
           <FileSpreadsheet className="mx-auto h-12 w-12 text-health-green" />
-          <h2 className="mt-4 text-lg font-semibold text-institutional-blue">Import Excel — fiches agents</h2>
+          <h2 className="mt-4 text-lg font-semibold text-institutional-black">Import Excel — fiches agents</h2>
           <p className="mt-2 text-sm text-dark-text/60">
             Une ligne = un agent (matricule, identité, profession, diplômes, affectation…). Les totaux de la déclaration structure sont recalculés automatiquement.
           </p>
@@ -507,7 +507,7 @@ export function CollecteDashboardPage() {
             >
               Télécharger le modèle
             </button>
-            <label className="cursor-pointer rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6b45]">
+            <label className="cursor-pointer rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white hover:bg-[#005a23]">
               {importing ? 'Import…' : 'Choisir un fichier'}
               <input
                 type="file"
@@ -536,7 +536,7 @@ export function CollecteDashboardPage() {
 
       {activeTab === 'offline' && (
         <div className="mx-auto max-w-xl space-y-4 rounded-xl border border-[#e8ecf0] bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-institutional-blue">Collecte hors ligne</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Collecte hors ligne</h2>
           <p className="text-sm text-dark-text/60">
             Téléchargez un pack (structures, déclarations, agents du périmètre) pour travailler sans réseau.
             Les brouillons non synchronisés restent dans ce navigateur jusqu&apos;à la reconnexion.
@@ -564,7 +564,7 @@ export function CollecteDashboardPage() {
                   setOfflineBusy(false)
                 }
               }}
-              className="rounded-lg bg-institutional-blue px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-lg bg-institutional-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
               {offlineBusy ? 'Traitement…' : 'Télécharger le pack'}
             </button>

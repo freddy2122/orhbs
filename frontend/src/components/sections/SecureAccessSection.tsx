@@ -4,7 +4,7 @@ import { LOGOS } from '../../constants/institutional'
 
 export function SecureAccessSection() {
   return (
-    <section className="bg-institutional-blue py-12 sm:py-14">
+    <section className="bg-institutional-black py-12 sm:py-14">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 md:flex-row md:justify-between md:text-left">
         <div className="flex max-w-xl items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1">
@@ -26,7 +26,7 @@ export function SecureAccessSection() {
         </div>
         <Link
           to="/espace-prive"
-          className="inline-flex shrink-0 items-center gap-2 rounded bg-health-green px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d6b45]"
+          className="inline-flex shrink-0 items-center gap-2 rounded bg-health-green px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#005a23]"
         >
           <Lock className="h-4 w-4" aria-hidden="true" />
           Accéder à l&apos;espace privé

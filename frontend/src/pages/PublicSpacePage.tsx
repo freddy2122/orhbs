@@ -18,7 +18,7 @@ export function PublicSpacePage() {
         <div className="mx-auto flex max-w-7xl items-start gap-3 px-4 sm:px-6">
           <Globe className="mt-0.5 h-5 w-5 shrink-0 text-health-green" />
           <div className="text-sm text-dark-text/75">
-            <p className="font-semibold text-institutional-blue">Transparence et protection</p>
+            <p className="font-semibold text-institutional-black">Transparence et protection</p>
             <p className="mt-1">{PUBLIC_DATA_NOTICE}</p>
           </div>
         </div>
@@ -37,7 +37,7 @@ export function PublicSpacePage() {
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-health-green/10 text-health-green">
                     <Icon className="h-6 w-6" strokeWidth={1.75} />
                   </div>
-                  <h2 className="text-lg font-semibold text-institutional-blue">{mod.title}</h2>
+                  <h2 className="text-lg font-semibold text-institutional-black">{mod.title}</h2>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-dark-text/65">{mod.description}</p>
                   <p className="mt-3 rounded-lg bg-light-gray/50 px-3 py-2 text-xs text-dark-text/55">
                     <span className="font-medium text-health-green">Utilité : </span>
@@ -56,7 +56,7 @@ export function PublicSpacePage() {
         </div>
       </section>
 
-      <section className="border-t border-[#e8ecf0] bg-institutional-blue py-12">
+      <section className="border-t border-[#e8ecf0] bg-institutional-black py-12">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
           <img
             src={LOGOS.ministereSante}
@@ -69,7 +69,7 @@ export function PublicSpacePage() {
           </p>
           <Link
             to="/demande-acces"
-            className="mt-6 inline-flex rounded-lg bg-gold-accent px-6 py-2.5 text-sm font-semibold text-institutional-blue hover:bg-[#c49430]"
+            className="mt-6 inline-flex rounded-lg bg-gold-accent px-6 py-2.5 text-sm font-semibold text-institutional-black hover:bg-[#e0a900]"
           >
             Demander un accès
           </Link>

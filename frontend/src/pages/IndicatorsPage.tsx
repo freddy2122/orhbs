@@ -62,7 +62,7 @@ export function IndicatorsPage() {
 
       <section className="bg-white py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-8 text-2xl font-semibold text-institutional-blue">Indicateurs interactifs</h2>
+          <h2 className="mb-8 text-2xl font-semibold text-institutional-black">Indicateurs interactifs</h2>
           {hasChartData ? (
             <NationalIndicatorsCharts />
           ) : (
@@ -85,7 +85,7 @@ export function IndicatorsPage() {
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-health-green/10 text-health-green">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </div>
-                  <h2 className="font-semibold text-institutional-blue">{cat.title}</h2>
+                  <h2 className="font-semibold text-institutional-black">{cat.title}</h2>
                   <p className="mt-2 text-sm text-dark-text/70">{cat.description}</p>
                 </article>
               )
@@ -97,7 +97,7 @@ export function IndicatorsPage() {
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-2xl font-semibold text-institutional-blue">Carte choroplèthe des effectifs</h2>
+            <h2 className="text-2xl font-semibold text-institutional-black">Carte choroplèthe des effectifs</h2>
             <Link
               to="/cartographie"
               className="text-sm font-semibold text-health-green hover:underline"

@@ -40,12 +40,12 @@ export function LegalTextsPage() {
             <div className="space-y-3">
               {items.map((doc) => (
                 <article key={doc.id} className="flex items-center gap-4 rounded-lg border border-[#e8ecf0] bg-white p-5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-institutional-blue/10 text-institutional-blue">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-institutional-black/10 text-institutional-black">
                     <Scale className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <span className="text-xs font-medium uppercase tracking-wider text-health-green">{doc.categorie || 'Texte'}</span>
-                    <h2 className="font-semibold text-institutional-blue">{doc.titre}</h2>
+                    <h2 className="font-semibold text-institutional-black">{doc.titre}</h2>
                     <p className="text-xs text-dark-text/50">{doc.annee ?? (doc.date_publication ? new Date(doc.date_publication).getFullYear() : '—')}</p>
                   </div>
                 </article>

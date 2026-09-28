@@ -135,7 +135,7 @@ export function AgentCareerPanel({ agent, structures, mouvements, canEdit = true
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div>
-        <h3 className="text-sm font-semibold text-institutional-blue">Qualifications</h3>
+        <h3 className="text-sm font-semibold text-institutional-black">Qualifications</h3>
         <ul className="mt-2 space-y-1 text-sm">
           {agent.diplome_principal && (
             <li className="rounded bg-light-gray/50 px-3 py-2">
@@ -161,7 +161,7 @@ export function AgentCareerPanel({ agent, structures, mouvements, canEdit = true
           <input className={inputClass} placeholder="Niveau" value={qual.niveau} onChange={(e) => setQual((q) => ({ ...q, niveau: e.target.value }))} />
           <input className={inputClass} placeholder="École" value={qual.ecole} onChange={(e) => setQual((q) => ({ ...q, ecole: e.target.value }))} />
           <input type="date" className={inputClass} value={qual.date_obtention} onChange={(e) => setQual((q) => ({ ...q, date_obtention: e.target.value }))} />
-          <button type="submit" disabled={saving} className="rounded-lg bg-institutional-blue px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+          <button type="submit" disabled={saving} className="rounded-lg bg-institutional-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
             Ajouter une qualification
           </button>
         </form>
@@ -169,7 +169,7 @@ export function AgentCareerPanel({ agent, structures, mouvements, canEdit = true
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-institutional-blue">Contrat</h3>
+        <h3 className="text-sm font-semibold text-institutional-black">Contrat</h3>
         {canEdit ? (
         <form onSubmit={submitContrat} className="mt-2 grid gap-2 sm:grid-cols-2">
           <select className={inputClass} value={contrat.type} onChange={(e) => setContrat((c) => ({ ...c, type: e.target.value }))}>
@@ -183,7 +183,7 @@ export function AgentCareerPanel({ agent, structures, mouvements, canEdit = true
           <input className={inputClass} placeholder="Employeur" value={contrat.employeur} onChange={(e) => setContrat((c) => ({ ...c, employeur: e.target.value }))} />
           <input type="date" className={inputClass} value={contrat.debut} onChange={(e) => setContrat((c) => ({ ...c, debut: e.target.value }))} />
           <input type="date" className={inputClass} value={contrat.fin} onChange={(e) => setContrat((c) => ({ ...c, fin: e.target.value }))} />
-          <button type="submit" disabled={saving} className="rounded-lg border border-[#dde3ea] px-3 py-2 text-sm font-medium text-institutional-blue">
+          <button type="submit" disabled={saving} className="rounded-lg border border-[#dde3ea] px-3 py-2 text-sm font-medium text-institutional-black">
             Enregistrer le contrat
           </button>
         </form>
@@ -201,14 +201,14 @@ export function AgentCareerPanel({ agent, structures, mouvements, canEdit = true
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-institutional-blue">Mouvements RH</h3>
+        <h3 className="text-sm font-semibold text-institutional-black">Mouvements RH</h3>
         {mouvements.length === 0 ? (
           <p className="mt-2 text-sm text-dark-text/45">Aucun mouvement enregistré pour cet agent.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {mouvements.map((item) => (
               <li key={item.id} className="rounded-lg border border-[#e8ecf0] bg-white px-3 py-2 text-sm">
-                <p className="font-medium text-institutional-blue">{item.type_mouvement_label}</p>
+                <p className="font-medium text-institutional-black">{item.type_mouvement_label}</p>
                 <p className="text-xs text-dark-text/55">
                   {formatDate(item.date_effet)}
                   {item.structure_origine_nom || item.structure_destination_nom

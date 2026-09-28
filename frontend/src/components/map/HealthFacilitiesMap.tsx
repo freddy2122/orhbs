@@ -140,7 +140,7 @@ function FacilityPanel({ facility }: { facility: HealthFacility }) {
       >
         {facility.type}
       </span>
-      <h3 className="mt-2 text-lg font-bold text-institutional-blue">{facility.name}</h3>
+      <h3 className="mt-2 text-lg font-bold text-institutional-black">{facility.name}</h3>
       <p className="text-xs text-dark-text/50">{FACILITY_TYPE_LABELS[facility.type]}</p>
 
       <dl className="mt-4 space-y-2.5 text-sm">
@@ -154,7 +154,7 @@ function FacilityPanel({ facility }: { facility: HealthFacility }) {
         </div>
         {facility.beds !== undefined ? (
           <div className="flex gap-2">
-            <BedDouble className="mt-0.5 h-4 w-4 shrink-0 text-institutional-blue" />
+            <BedDouble className="mt-0.5 h-4 w-4 shrink-0 text-institutional-black" />
             <div>
               <dt className="text-dark-text/50">Capacité</dt>
               <dd className="font-medium">{facility.beds} lits · {facility.staffTotal} agents recensés</dd>
@@ -162,7 +162,7 @@ function FacilityPanel({ facility }: { facility: HealthFacility }) {
           </div>
         ) : (
           <div className="flex gap-2">
-            <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-institutional-blue" />
+            <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-institutional-black" />
             <div>
               <dt className="text-dark-text/50">Effectif recensé</dt>
               <dd className="font-medium">{facility.staffTotal} agents (données agrégées)</dd>
@@ -170,7 +170,7 @@ function FacilityPanel({ facility }: { facility: HealthFacility }) {
           </div>
         )}
         <div className="flex gap-2">
-          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-gold-accent" />
+          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-gold-deep" />
           <div>
             <dt className="text-dark-text/50">Horaires</dt>
             <dd className="font-medium">{facility.openingHours}</dd>

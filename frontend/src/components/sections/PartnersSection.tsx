@@ -7,8 +7,8 @@ function PartnerLogo({ partner }: { partner: Partner }) {
 
   if (!partner.logo || failed) {
     return (
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-institutional-blue/10">
-        <span className="text-xs font-bold text-institutional-blue">{partner.abbr}</span>
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-institutional-black/10">
+        <span className="text-xs font-bold text-institutional-black">{partner.abbr}</span>
       </div>
     )
   }

@@ -129,7 +129,7 @@ export function CartographyPage() {
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-health-green" />
               <div>
-                <p className="font-semibold text-institutional-blue">
+                <p className="font-semibold text-institutional-black">
                   Localisation depuis l&apos;annuaire de conformité
                 </p>
                 <p className="mt-1 text-sm text-dark-text/65">
@@ -166,7 +166,7 @@ export function CartographyPage() {
 
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-6 text-xl font-semibold text-institutional-blue">
+          <h2 className="mb-6 text-xl font-semibold text-institutional-black">
             Carte choroplèthe — effectifs par territoire
           </h2>
           {loading ? (
@@ -196,7 +196,7 @@ export function CartographyPage() {
             <div>
               <div className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-health-green" />
-                <h2 className="text-xl font-semibold text-institutional-blue">Infrastructures sur la carte</h2>
+                <h2 className="text-xl font-semibold text-institutional-black">Infrastructures sur la carte</h2>
               </div>
               <p className="mt-1 text-sm text-dark-text/60">
                 {filtered.length} structure{filtered.length !== 1 ? 's' : ''} affichée{filtered.length !== 1 ? 's' : ''} — cliquez un marqueur ou une fiche ci-dessous.
@@ -257,7 +257,7 @@ export function CartographyPage() {
 
       <section className="py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-6 text-lg font-semibold text-institutional-blue">Liste des structures</h2>
+          <h2 className="mb-6 text-lg font-semibold text-institutional-black">Liste des structures</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((facility) => (
               <button
@@ -268,10 +268,10 @@ export function CartographyPage() {
                   selectedId === facility.id ? 'border-health-green ring-2 ring-health-green/20' : 'border-[#e8ecf0]'
                 }`}
               >
-                <span className="rounded bg-institutional-blue/10 px-2 py-0.5 text-xs font-medium text-institutional-blue">
+                <span className="rounded bg-institutional-black/10 px-2 py-0.5 text-xs font-medium text-institutional-black">
                   {facility.type}
                 </span>
-                <h3 className="mt-2 font-semibold text-institutional-blue">{facility.name}</h3>
+                <h3 className="mt-2 font-semibold text-institutional-black">{facility.name}</h3>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-dark-text/60">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
                   {facility.commune}, {facility.dept}

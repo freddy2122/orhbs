@@ -83,7 +83,7 @@ export function AuditPanel() {
                     {new Date(row.created_at).toLocaleString('fr-FR')}
                   </td>
                   <td className="px-4 py-3">{row.user?.full_name || row.user?.username || '—'}</td>
-                  <td className="px-4 py-3 font-medium text-institutional-blue">{row.action_label}</td>
+                  <td className="px-4 py-3 font-medium text-institutional-black">{row.action_label}</td>
                   <td className="px-4 py-3">
                     <p>{row.description || row.object_repr || '—'}</p>
                     {row.model_name && (

@@ -218,7 +218,7 @@ export function EditorialCmsPanel() {
             {annuaire.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
                 <div>
-                  <p className="font-medium text-institutional-blue">{item.nom}</p>
+                  <p className="font-medium text-institutional-black">{item.nom}</p>
                   <p className="text-xs text-dark-text/50">{item.type_entree_label} · {item.statut_label} · {item.departement || '—'}</p>
                 </div>
                 <button type="button" onClick={() => updateCmsAnnuaire(item.id, { publie: !item.publie }).then(load)} className="text-xs font-medium text-health-green hover:underline">
@@ -235,7 +235,7 @@ export function EditorialCmsPanel() {
           {items.map((item) => (
             <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
               <div>
-                <p className="font-medium text-institutional-blue">{item.titre}</p>
+                <p className="font-medium text-institutional-black">{item.titre}</p>
                 <p className="text-xs text-dark-text/50">{item.categorie || item.type_contenu_label} · {item.publie ? 'Publié' : 'Brouillon'}</p>
               </div>
               <button type="button" onClick={() => updateCmsContenu(item.id, { publie: !item.publie }).then(load)} className="text-xs font-medium text-health-green hover:underline">

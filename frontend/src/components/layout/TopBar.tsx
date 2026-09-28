@@ -27,7 +27,7 @@ export function TopBar() {
           
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded border border-institutional-blue/15 bg-white px-2.5 py-1 text-xs font-semibold text-institutional-blue transition-colors hover:border-health-green/30 hover:text-health-green sm:px-3 sm:text-sm"
+            className="flex items-center gap-1.5 rounded border border-institutional-black/15 bg-white px-2.5 py-1 text-xs font-semibold text-institutional-black transition-colors hover:border-health-green/30 hover:text-health-green sm:px-3 sm:text-sm"
             aria-label="Langue actuelle : Français"
           >
             FR
@@ -47,7 +47,7 @@ export function TopBar() {
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 rounded-full border border-[#e2e8f0] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-institutional-blue"
+              className="shrink-0 rounded-full border border-[#e2e8f0] bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-institutional-black"
             >
               {link.label}
             </a>

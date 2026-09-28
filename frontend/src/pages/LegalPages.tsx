@@ -8,24 +8,24 @@ export function PrivacyPage() {
       <PageBanner label="Données personnelles" title="Politique de confidentialité" />
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 prose prose-sm max-w-none">
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-institutional-blue">Données collectées</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Données collectées</h2>
           <p className="mt-2 text-sm leading-relaxed text-dark-text/70">
             L&apos;ORHS Bénin collecte uniquement les données nécessaires au fonctionnement du site : formulaires de contact, demandes d&apos;accès, inscriptions newsletter et connexion à l&apos;espace sécurisé.
           </p>
         </section>
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-institutional-blue">Usage des données</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Usage des données</h2>
           <p className="mt-2 text-sm leading-relaxed text-dark-text/70">
             Les données sont utilisées exclusivement dans le cadre des missions de l&apos;observatoire. Aucune revente ni partage non autorisé.
           </p>
         </section>
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-institutional-blue">Données de santé publiées</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Données de santé publiées</h2>
           <p className="mt-2 text-sm leading-relaxed text-dark-text/70">{PUBLIC_DATA_NOTICE}</p>
           <p className="mt-2 text-sm leading-relaxed text-dark-text/70">{RESTRICTED_DATA_NOTICE}</p>
         </section>
         <section>
-          <h2 className="text-lg font-semibold text-institutional-blue">Vos droits</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Vos droits</h2>
           <p className="mt-2 text-sm leading-relaxed text-dark-text/70">
             Conformément à la législation béninoise sur la protection des données personnelles, vous disposez d&apos;un droit d&apos;accès, de rectification et de suppression. Pour la newsletter, un lien de désabonnement figure dans chaque e-mail. Contact : contact@orhsb.bj
           </p>
@@ -41,7 +41,7 @@ export function LegalNoticePage() {
       <PageBanner label="Informations légales" title="Mentions légales" />
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-institutional-blue">Éditeur</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Éditeur</h2>
           <p className="mt-2 text-sm text-dark-text/70">
             Observatoire des Ressources Humaines en Santé du Bénin (ORHS Bénin)<br />
             Ministère de la Santé — République du Bénin<br />
@@ -49,11 +49,11 @@ export function LegalNoticePage() {
           </p>
         </section>
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-institutional-blue">Hébergeur</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Hébergeur</h2>
           <p className="mt-2 text-sm text-dark-text/70">À définir lors du déploiement en production.</p>
         </section>
         <section>
-          <h2 className="text-lg font-semibold text-institutional-blue">Propriété intellectuelle</h2>
+          <h2 className="text-lg font-semibold text-institutional-black">Propriété intellectuelle</h2>
           <p className="mt-2 text-sm text-dark-text/70">
             Les contenus publiés sur ce site sont la propriété de l&apos;ORHS Bénin ou de ses partenaires. Toute reproduction nécessite une autorisation préalable.
           </p>
@@ -99,7 +99,7 @@ export function SitemapPage() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6 grid gap-8 sm:grid-cols-3">
           {links.map((group) => (
             <div key={group.section}>
-              <h2 className="font-semibold text-institutional-blue">{group.section}</h2>
+              <h2 className="font-semibold text-institutional-black">{group.section}</h2>
               <ul className="mt-3 space-y-2">
                 {group.items.map(([label, href]) => (
                   <li key={href}><Link to={href} className="text-sm text-dark-text/70 hover:text-health-green">{label}</Link></li>

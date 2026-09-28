@@ -102,7 +102,7 @@ export function CmsContentPanel() {
   return (
     <div className="space-y-6">
       <form onSubmit={handleCreate} className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-semibold text-institutional-blue">Nouvelle publication</h3>
+        <h3 className="mb-4 text-sm font-semibold text-institutional-black">Nouvelle publication</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <input
             required
@@ -175,14 +175,14 @@ export function CmsContentPanel() {
           {items.map((item) => (
             <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
               <div>
-                <p className="font-medium text-institutional-blue">{item.titre}</p>
+                <p className="font-medium text-institutional-black">{item.titre}</p>
                 <p className="text-xs text-dark-text/50">
                   {item.type_publication_label} · {item.annee ?? '—'} · {item.publie ? 'Publié' : 'Brouillon'}
                   {item.fichier_url ? ' · PDF joint' : ' · sans PDF'}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <label className="cursor-pointer text-xs font-medium text-institutional-blue hover:underline">
+                <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
                   {item.fichier_url ? 'Remplacer le PDF' : 'Joindre un PDF'}
                   <input
                     type="file"

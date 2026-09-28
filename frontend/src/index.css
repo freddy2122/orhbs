@@ -1,11 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-health-green: #0f7b4f;
-  --color-institutional-blue: #0b3a66;
+  /* Couleurs officielles — Charte graphique de la Présidence de la
+     République du Bénin (2016) : vert 348C, or 123C et le noir
+     institutionnel remplacent les teintes précédentes, qui n'existent
+     pas dans la palette gouvernementale (drapeau + noir uniquement). */
+  --color-health-green: #006828;
+  --color-institutional-black: #000000;
   --color-light-gray: #f5f7fa;
   --color-dark-text: #1f2937;
-  --color-gold-accent: #d6a43a;
+  --color-gold-accent: #ffbe00;
+  /* Variante lisible du gold officiel pour le texte sur fond clair —
+     #ffbe00 en texte échoue le contraste WCAG sur blanc. */
+  --color-gold-deep: #9a7a2a;
   --color-surface-muted: #f8fafb;
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }

@@ -43,7 +43,7 @@ export function DataAccessPage() {
             <textarea rows={4} className="w-full rounded-lg border border-[#dde3ea] px-4 py-2.5 text-sm" required />
           </div>
           <p className="text-xs text-dark-text/50">Aucune demande de données nominatives ne sera traitée via ce formulaire public.</p>
-          <button type="submit" className="rounded-lg bg-institutional-blue px-6 py-3 text-sm font-semibold text-white hover:bg-[#092d52]">
+          <button type="submit" className="rounded-lg bg-institutional-black px-6 py-3 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
             Soumettre la demande
           </button>
         </form>
@@ -96,7 +96,7 @@ export function FocalPointPage() {
             <label className="mb-1 block text-sm font-medium">Téléphone</label>
             <input type="tel" className="w-full rounded-lg border border-[#dde3ea] px-4 py-2.5 text-sm" />
           </div>
-          <button type="submit" className="rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#0d6b45]">
+          <button type="submit" className="rounded-lg bg-health-green px-6 py-3 text-sm font-semibold text-white hover:bg-[#005a23]">
             Soumettre la candidature
           </button>
           <p className="text-xs text-dark-text/50">Approbation par l&apos;administration ORHS après examen du dossier.</p>

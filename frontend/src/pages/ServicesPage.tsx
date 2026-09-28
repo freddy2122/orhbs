@@ -40,11 +40,11 @@ export function ServicesPage() {
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-health-green/10 text-health-green">
                       <Icon className="h-6 w-6" strokeWidth={1.75} />
                     </div>
-                    <h2 className="mt-4 text-xl font-semibold text-institutional-blue">{offer.title}</h2>
+                    <h2 className="mt-4 text-xl font-semibold text-institutional-black">{offer.title}</h2>
                     <p className="mt-1 text-sm font-medium text-health-green">{offer.tagline}</p>
                     <p className="mt-3 text-sm leading-relaxed text-dark-text/70">{offer.description}</p>
                     <p className="mt-4 inline-flex rounded-lg bg-light-gray/60 px-3 py-2 text-xs text-dark-text/60">
-                      <span className="font-medium text-institutional-blue">Pour&nbsp;: </span>
+                      <span className="font-medium text-institutional-black">Pour&nbsp;: </span>
                       <span className="ml-1">{offer.audience}</span>
                     </p>
                   </div>
@@ -69,7 +69,7 @@ export function ServicesPage() {
         </div>
       </section>
 
-      <section className="border-t border-[#e8ecf0] bg-institutional-blue py-12">
+      <section className="border-t border-[#e8ecf0] bg-institutional-black py-12">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
           <img
             src={LOGOS.ministereSante}
@@ -83,7 +83,7 @@ export function ServicesPage() {
           </p>
           <Link
             to="/contact"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gold-accent px-6 py-2.5 text-sm font-semibold text-institutional-blue hover:bg-[#c49430]"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gold-accent px-6 py-2.5 text-sm font-semibold text-institutional-black hover:bg-[#e0a900]"
           >
             Nous contacter <ArrowRight className="h-4 w-4" />
           </Link>

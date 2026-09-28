@@ -113,7 +113,7 @@ export function AlertsConfigPanel() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
         <div>
-          <h3 className="font-semibold text-institutional-blue">Alertes email</h3>
+          <h3 className="font-semibold text-institutional-black">Alertes email</h3>
           <p className="mt-1 text-sm text-dark-text/60">
             Génération quotidienne via cron : <code className="text-xs">python manage.py run_scheduled_jobs</code>
           </p>
@@ -146,7 +146,7 @@ export function AlertsConfigPanel() {
               <article key={config.id} className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-medium text-institutional-blue">{config.type_alerte_label}</p>
+                    <p className="font-medium text-institutional-black">{config.type_alerte_label}</p>
                     <p className="text-xs text-dark-text/50">
                       Rappel toutes les {config.frequence_rappel_heures ?? '—'} h
                       {config.dernier_envoi
@@ -202,7 +202,7 @@ export function AlertsConfigPanel() {
       )}
 
       <div>
-        <h3 className="mb-3 font-semibold text-institutional-blue">File d&apos;envoi récente</h3>
+        <h3 className="mb-3 font-semibold text-institutional-black">File d&apos;envoi récente</h3>
         {emails.length === 0 ? (
           <p className="text-sm text-dark-text/50">Aucun email généré pour le moment.</p>
         ) : (
@@ -210,7 +210,7 @@ export function AlertsConfigPanel() {
             {emails.slice(0, 20).map((row) => (
               <li key={row.id} className="flex items-start justify-between gap-3 px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-institutional-blue">{row.sujet}</p>
+                  <p className="text-sm font-medium text-institutional-black">{row.sujet}</p>
                   <p className="text-xs text-dark-text/50">
                     {row.type_alerte_label} · {row.statut_label}
                     {row.erreur_message ? ` · ${row.erreur_message}` : ''}
@@ -243,7 +243,7 @@ export function AlertsConfigPanel() {
                         if (note === null) return
                         patchAlertEmail(row.id, 'traiter', note).then(load)
                       }}
-                      className="text-xs text-institutional-blue hover:underline"
+                      className="text-xs text-institutional-black hover:underline"
                     >
                       Marquer traité
                     </button>

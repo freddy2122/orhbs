@@ -29,7 +29,7 @@ export function SectionHeader({
       )}
       <h2
         className={`text-2xl font-semibold leading-tight sm:text-3xl ${
-          light ? 'text-white' : 'text-institutional-blue'
+          light ? 'text-white' : 'text-institutional-black'
         }`}
       >
         {title}
