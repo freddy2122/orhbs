@@ -860,14 +860,6 @@ class Command(BaseCommand):
                 "Parakou",
                 "Université de Parakou",
             ),
-            (
-                ContenuEditorial.TypeContenu.FORMATION,
-                "Institut de formation en soins infirmiers — Tanguiéta",
-                "Appui à la formation en zone rurale, partenariat Hôpital Saint-Jean-de-Dieu.",
-                "institut",
-                "Tanguiéta",
-                "HSJD / partenaires",
-            ),
         ]
         for index, (typ, titre, resume, categorie, lieu, organisation) in enumerate(editorial):
             slug = slugify(titre)[:290]
