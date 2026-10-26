@@ -1,14 +1,27 @@
 from django.conf import settings
 from django.middleware.csrf import get_token
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.models import AuditLog
 from .serializers import LoginSerializer, UserSerializer
-from .throttling import LoginRateThrottle, LoginThrottled
+from .services.account_security import (
+    clear_lockout,
+    lockout_message,
+    lockout_remaining_seconds,
+    register_failed_login,
+    send_activation_email,
+    set_user_password,
+    user_from_activation_token,
+)
+from .throttling import LoginRateThrottle, LoginThrottled, PasswordResetRateThrottle
+
+User = get_user_model()
 
 
 def _client_ip(request):
@@ -78,9 +91,25 @@ class LoginView(APIView):
     def post(self, request):
         from django.db.utils import DatabaseError
 
+        username = request.data.get("username") if hasattr(request.data, "get") else ""
+        username = username if isinstance(username, str) else ""
         try:
+            remaining = lockout_remaining_seconds(username)
+            if remaining:
+                return Response(
+                    {"detail": lockout_message(remaining)}, status=status.HTTP_423_LOCKED
+                )
             serializer = LoginSerializer(data=request.data)
-            valid = serializer.is_valid()
+            try:
+                valid = serializer.is_valid()
+            except AuthenticationFailed:
+                register_failed_login(username, _client_ip(request))
+                remaining = lockout_remaining_seconds(username)
+                if remaining:
+                    return Response(
+                        {"detail": lockout_message(remaining)}, status=status.HTTP_423_LOCKED
+                    )
+                raise
         except DatabaseError:
             return Response(
                 {
@@ -95,6 +124,7 @@ class LoginView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
+        clear_lockout(username)
         response = Response(data)
         set_auth_cookies(
             response,
@@ -146,3 +176,77 @@ class MeView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         return Response(UserSerializer(request.user).data)
+
+
+class PasswordForgotView(APIView):
+    """Demande de lien de réinitialisation. Réponse identique que le compte existe ou non."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email") if hasattr(request.data, "get") else ""
+        email = (email or "").strip() if isinstance(email, str) else ""
+        if email:
+            for user in User.objects.filter(email__iexact=email, is_active=True, profile__isnull=False):
+                try:
+                    send_activation_email(user, invitation=False)
+                except Exception:
+                    pass
+        return Response(
+            {"detail": "Si un compte correspond à cette adresse, un e-mail vient d'être envoyé."}
+        )
+
+
+class PasswordSetView(APIView):
+    """Définit le mot de passe via le lien reçu (activation d'un compte invité ou réinitialisation)."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
+
+    def post(self, request):
+        user = user_from_activation_token(request.data.get("uid"), request.data.get("token"))
+        if not user:
+            return Response({"detail": "Lien invalide ou expiré."}, status=status.HTTP_400_BAD_REQUEST)
+        password = request.data.get("password")
+        if not isinstance(password, str) or not password:
+            return Response({"password": ["Mot de passe requis."]}, status=status.HTTP_400_BAD_REQUEST)
+        set_user_password(user, password)
+        AuditLog.objects.create(
+            user=user,
+            action=AuditLog.Action.UPDATE,
+            model_name="User",
+            object_id=str(user.pk),
+            object_repr=user.username,
+            description="Mot de passe défini via lien d'activation / réinitialisation",
+            ip_address=_client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+        return Response({"detail": "Mot de passe enregistré. Vous pouvez vous connecter.", "username": user.username})
+
+
+class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        current = request.data.get("current_password")
+        new = request.data.get("new_password")
+        if not isinstance(current, str) or not request.user.check_password(current):
+            return Response(
+                {"current_password": ["Mot de passe actuel incorrect."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not isinstance(new, str) or not new:
+            return Response({"password": ["Nouveau mot de passe requis."]}, status=status.HTTP_400_BAD_REQUEST)
+        set_user_password(request.user, new)
+        AuditLog.objects.create(
+            user=request.user,
+            action=AuditLog.Action.UPDATE,
+            model_name="User",
+            object_id=str(request.user.pk),
+            object_repr=request.user.username,
+            description="Changement de mot de passe par l'utilisateur",
+            ip_address=_client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+        return Response({"detail": "Mot de passe modifié."})

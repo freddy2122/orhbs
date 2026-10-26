@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   ExternalLink,
+  KeyRound,
   LogOut,
   Menu,
   X,
@@ -121,6 +122,13 @@ export function DashboardLayout() {
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-dark-text/60 hover:bg-light-gray"
           >
             <ExternalLink className="h-3.5 w-3.5" /> Site public
+          </Link>
+          <Link
+            to="/dashboard/mot-de-passe"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-dark-text/60 hover:bg-light-gray"
+          >
+            <KeyRound className="h-3.5 w-3.5" /> Mon mot de passe
           </Link>
           <button
             type="button"

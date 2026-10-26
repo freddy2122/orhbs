@@ -105,10 +105,21 @@ else:
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
+    },
+    {"NAME": "api.password_validators.ProjectTermsValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+# Politique de comptes : verrouillage après N échecs consécutifs, lien d'activation limité dans le temps.
+LOGIN_MAX_FAILED_ATTEMPTS = int(os.getenv("DJANGO_LOGIN_MAX_FAILURES", "5"))
+LOGIN_LOCKOUT_MINUTES = int(os.getenv("DJANGO_LOGIN_LOCKOUT_MINUTES", "15"))
+PASSWORD_RESET_TIMEOUT = 3 * 24 * 60 * 60
+PASSWORD_HISTORY_SIZE = 5
+SENSITIVE_ROLE_MIN_PASSWORD_LENGTH = 14
 
 LANGUAGE_CODE = "fr-fr"
 TIME_ZONE = "Europe/Paris"
@@ -151,6 +162,11 @@ REST_FRAMEWORK = {
             "1000/min"
             if "test" in sys.argv or os.getenv("RUNNING_TESTS") == "1"
             else os.getenv("DJANGO_LOGIN_THROTTLE_RATE", "5/min")
+        ),
+        "password_reset": (
+            "1000/hour"
+            if "test" in sys.argv or os.getenv("RUNNING_TESTS") == "1"
+            else os.getenv("DJANGO_PASSWORD_RESET_THROTTLE_RATE", "10/hour")
         ),
     },
     # Render place l'app derrière un seul reverse proxy : NUM_PROXIES=1 fait

@@ -169,6 +169,11 @@ export function LoginPage() {
                   disabled={submitting}
                 />
               </div>
+              <div className="text-right">
+                <Link to="/mot-de-passe-oublie" className="text-xs font-medium text-health-green hover:underline">
+                  Mot de passe oublié ?
+                </Link>
+              </div>
               <button
                 type="submit"
                 disabled={submitting}

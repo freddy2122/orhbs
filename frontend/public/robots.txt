@@ -3,5 +3,7 @@ Allow: /
 Disallow: /dashboard/
 Disallow: /espace-prive
 Disallow: /connexion
+Disallow: /activation
+Disallow: /mot-de-passe-oublie
 
 Sitemap: https://orhsb.vercel.app/sitemap.xml

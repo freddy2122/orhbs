@@ -14,6 +14,8 @@ import { AuditPanel } from '../../components/dashboard/AuditPanel'
 import { MonitoringPanel } from '../../components/dashboard/MonitoringPanel'
 import { OrganizationPanel } from '../../components/dashboard/OrganizationPanel'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { PasswordRules } from '../../components/ui/PasswordRules'
+import { apiFetch, extractApiError } from '../../lib/api-client'
 import { fetchOrganization, type OrganizationData } from '../../lib/organization-admin-api'
 
 type Profile = {
@@ -169,16 +171,18 @@ export function AdminDashboardPage() {
 
       const payload = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const messageText =
-          typeof payload.detail === 'string'
-            ? payload.detail
-            : typeof payload.non_field_errors?.[0] === 'string'
-              ? payload.non_field_errors[0]
-              : 'L’enregistrement du compte a échoué.'
-        throw new Error(messageText)
+        throw new Error(extractApiError(payload, 'L’enregistrement du compte a échoué.'))
       }
 
-      setMessage(editingUserId ? `Compte mis à jour : ${payload.username || form.username}` : `Compte créé : ${payload.username || form.username}`)
+      if (editingUserId) {
+        setMessage(`Compte mis à jour : ${payload.username || form.username}`)
+      } else if (payload.invitation_envoyee) {
+        setMessage(`Compte créé : ${payload.username}. Invitation envoyée à ${payload.email}.`)
+      } else if (!form.password) {
+        setMessage(`Compte créé : ${payload.username}, mais l’e-mail d’invitation n’a pas pu partir. Utilisez « Renvoyer l’invitation ».`)
+      } else {
+        setMessage(`Compte créé : ${payload.username}`)
+      }
       setEditingUserId(null)
       setForm({
         username: '',
@@ -227,6 +231,17 @@ export function AdminDashboardPage() {
       departement_id: user.profile?.departement ? String(user.profile.departement.id) : '',
       structure_id: user.profile?.structure ? String(user.profile.structure.id) : '',
     })
+  }
+
+  const handleAccountAction = async (user: UserRow, action: 'invite' | 'unlock') => {
+    setError(null)
+    setMessage(null)
+    try {
+      const result = await apiFetch<{ detail: string }>(`/api/admin/users/${user.id}/${action}/`, { method: 'POST', body: '{}' })
+      setMessage(result.detail)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Action impossible.')
+    }
   }
 
   const handleDeleteUser = async (user: UserRow) => {
@@ -344,16 +359,25 @@ export function AdminDashboardPage() {
                 />
               </label>
 
-              <label className="grid gap-1 text-sm font-medium text-dark-text">
-                Mot de passe {editingUserId ? '(laisser vide pour conserver)' : ''}
+              <div className="grid gap-1 text-sm font-medium text-dark-text">
+                <label htmlFor="admin-user-password">
+                  Mot de passe {editingUserId ? '(laisser vide pour conserver)' : '(facultatif)'}
+                </label>
                 <input
+                  id="admin-user-password"
                   type="password"
+                  autoComplete="new-password"
                   value={form.password}
                   onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
                   className="rounded-lg border border-[#dde3ea] bg-white px-3 py-2 outline-none focus:border-health-green/40 focus:ring-2 focus:ring-health-green/15"
-                  required={!editingUserId}
                 />
-              </label>
+                {!editingUserId && (
+                  <p className="text-xs font-normal text-dark-text/60">
+                    Recommandé : laissez vide et renseignez l’e-mail. L’utilisateur reçoit une invitation et choisit lui-même son mot de passe, que vous ne connaissez jamais.
+                  </p>
+                )}
+                {form.password && <PasswordRules />}
+              </div>
 
               <label className="grid gap-1 text-sm font-medium text-dark-text">
                 Poste / fonction
@@ -511,7 +535,15 @@ export function AdminDashboardPage() {
                         </td>
                         <td className="px-3 py-3 text-dark-text/70">{user.email || '—'}</td>
                         <td className="px-3 py-3">
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                            {user.email && (
+                              <button type="button" onClick={() => void handleAccountAction(user, 'invite')} className="text-xs text-health-green hover:underline">
+                                Envoyer un lien de mot de passe
+                              </button>
+                            )}
+                            <button type="button" onClick={() => void handleAccountAction(user, 'unlock')} className="text-xs text-amber-700 hover:underline">
+                              Déverrouiller
+                            </button>
                             <button type="button" onClick={() => handleEditUser(user)} className="text-xs text-institutional-black hover:underline">
                               Éditer
                             </button>
@@ -529,9 +561,9 @@ export function AdminDashboardPage() {
           </div>
 
           <div className="rounded-xl border border-[#e8ecf0] bg-white p-5 shadow-sm">
-            <h2 className="mb-3 font-semibold text-institutional-black">7 rôles RBAC ORHS</h2>
+            <h2 className="mb-3 font-semibold text-institutional-black">8 rôles RBAC ORHS</h2>
             <div className="flex flex-wrap gap-2">
-              {['Admin', 'Coordination', 'Analyste', 'Validateur', 'Collecteur', 'Décideur', 'Partenaire'].map((r) => (
+              {['Admin', 'Coordination', 'Rédacteur', 'Analyste', 'Validateur', 'Collecteur', 'Décideur', 'Partenaire'].map((r) => (
                 <span key={r} className="rounded-full bg-light-gray px-3 py-1 text-xs font-medium text-dark-text/70">
                   {r}
                 </span>

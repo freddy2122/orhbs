@@ -21,3 +21,9 @@ class LoginThrottled(Throttled):
     default_detail = "Trop de tentatives de connexion."
     extra_detail_singular = "Réessayez dans {wait} seconde."
     extra_detail_plural = "Réessayez dans {wait} secondes."
+
+
+class PasswordResetRateThrottle(AnonRateThrottle):
+    """Limite les demandes de lien (mot de passe oublié) et d'activation par IP."""
+
+    scope = "password_reset"

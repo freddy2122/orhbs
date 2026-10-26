@@ -21,6 +21,7 @@ import { RoleGuard, RoleSpace } from './components/auth/RoleSpace'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { AdminDashboardPage } from './pages/dashboard/AdminDashboardPage'
 import { RedactionDashboardPage } from './pages/dashboard/RedactionDashboardPage'
+import { ChangePasswordPage } from './pages/dashboard/ChangePasswordPage'
 import { AnalyseDashboardPage } from './pages/dashboard/AnalyseDashboardPage'
 import { CollecteDashboardPage } from './pages/dashboard/CollecteDashboardPage'
 import { DashboardHomePage } from './pages/dashboard/DashboardHomePage'
@@ -37,6 +38,7 @@ import { NewsletterUnsubscribePage } from './pages/NewsletterUnsubscribePage'
 import { NewsDetailPage, NewsPage } from './pages/NewsPage'
 import { PublicationDetailPage } from './pages/PublicationDetailPage'
 import { PublicationsPage } from './pages/PublicationsPage'
+import { ActivationPage, ForgotPasswordPage } from './pages/PasswordPages'
 import { CartographyPage } from './pages/CartographyPage'
 import { CompliancePage } from './pages/CompliancePage'
 import { PublicSpacePage } from './pages/PublicSpacePage'
@@ -52,6 +54,8 @@ function App() {
         <Routes>
           <Route path="connexion" element={<Navigate to="/espace-prive" replace />} />
           <Route path="espace-prive" element={<LoginPage />} />
+          <Route path="mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+          <Route path="activation" element={<ActivationPage />} />
           <Route
             path="dashboard"
             element={
@@ -61,6 +65,7 @@ function App() {
             }
           >
           <Route index element={<DashboardHomePage />} />
+          <Route path="mot-de-passe" element={<ChangePasswordPage />} />
           <Route path="executif" element={<DashboardHomePage />} />
           <Route path="collecte" element={<DashboardHomePage />} />
           <Route path="validation" element={<DashboardHomePage />} />
