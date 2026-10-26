@@ -5,13 +5,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.models import AbonneNewsletter, CampagneNewsletter
-from api.permissions import IsAdminOrCoordination
+from api.permissions import IsCoordination
 from api.serializers import AbonneNewsletterSerializer, CampagneNewsletterSerializer
 from api.services.newsletter import dispatch_campaign, subscribe
 
 
 class NewsletterSubscriberListView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsCoordination]
 
     def get(self, request):
         qs = AbonneNewsletter.objects.all()
@@ -49,7 +49,7 @@ class NewsletterSubscriberListView(APIView):
 
 
 class NewsletterSubscriberDetailView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsCoordination]
 
     def patch(self, request, pk):
         abonne = AbonneNewsletter.objects.filter(pk=pk).first()
@@ -63,7 +63,7 @@ class NewsletterSubscriberDetailView(APIView):
 
 
 class NewsletterCampaignListView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsCoordination]
 
     def get(self, request):
         qs = CampagneNewsletter.objects.all()
@@ -78,7 +78,7 @@ class NewsletterCampaignListView(APIView):
 
 
 class NewsletterCampaignSendView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsCoordination]
 
     def post(self, request, pk):
         campagne = CampagneNewsletter.objects.filter(pk=pk).first()

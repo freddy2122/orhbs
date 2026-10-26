@@ -4,14 +4,11 @@ import {
   Activity,
   Building2,
   Database,
-  FileText,
   Settings,
   Shield,
   Users,
 } from 'lucide-react'
 import { PageHeader } from '../../components/dashboard/PageHeader'
-import { CmsContentPanel } from '../../components/dashboard/CmsContentPanel'
-import { EditorialCmsPanel } from '../../components/dashboard/EditorialCmsPanel'
 import { AlertsConfigPanel } from '../../components/dashboard/AlertsConfigPanel'
 import { AuditPanel } from '../../components/dashboard/AuditPanel'
 import { MonitoringPanel } from '../../components/dashboard/MonitoringPanel'
@@ -43,7 +40,6 @@ type UserRow = {
 const adminSections = [
   { id: 'users', label: 'Utilisateurs & rôles', icon: Users, path: '/dashboard/admin' },
   { id: 'organisation', label: 'Organisation', icon: Building2, path: '/dashboard/admin/organisation' },
-  { id: 'content', label: 'Contenu CMS', icon: FileText, path: '/dashboard/admin/contenu' },
   { id: 'config', label: 'Configuration', icon: Settings, path: '/dashboard/admin/config' },
   { id: 'audit', label: 'Audit & sécurité', icon: Shield, path: '/dashboard/admin/audit' },
   { id: 'integrations', label: 'Intégrations', icon: Database, path: '/dashboard/admin/integrations' },
@@ -53,6 +49,7 @@ const adminSections = [
 const ROLE_OPTIONS = [
   'admin',
   'coordination',
+  'redacteur',
   'analyste',
   'validateur',
   'collecteur',
@@ -64,7 +61,6 @@ const SCOPE_OPTIONS = ['national', 'departemental', 'structure']
 
 function getAdminSection(pathname: string) {
   if (pathname.endsWith('/organisation')) return 'organisation'
-  if (pathname.endsWith('/contenu')) return 'content'
   if (pathname.endsWith('/config')) return 'config'
   if (pathname.endsWith('/audit')) return 'audit'
   if (pathname.endsWith('/integrations')) return 'integrations'
@@ -546,19 +542,6 @@ export function AdminDashboardPage() {
       )}
 
       {activeSection === 'organisation' && <OrganizationPanel />}
-
-      {activeSection === 'content' && (
-        <div className="space-y-10">
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-institutional-black">Publications</h2>
-            <CmsContentPanel />
-          </div>
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-institutional-black">Contenu du site public</h2>
-            <EditorialCmsPanel />
-          </div>
-        </div>
-      )}
 
       {activeSection === 'config' && <AlertsConfigPanel />}
 

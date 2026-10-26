@@ -20,6 +20,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { RoleGuard, RoleSpace } from './components/auth/RoleSpace'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { AdminDashboardPage } from './pages/dashboard/AdminDashboardPage'
+import { RedactionDashboardPage } from './pages/dashboard/RedactionDashboardPage'
 import { AnalyseDashboardPage } from './pages/dashboard/AnalyseDashboardPage'
 import { CollecteDashboardPage } from './pages/dashboard/CollecteDashboardPage'
 import { DashboardHomePage } from './pages/dashboard/DashboardHomePage'
@@ -64,6 +65,7 @@ function App() {
           <Route path="collecte" element={<DashboardHomePage />} />
           <Route path="validation" element={<DashboardHomePage />} />
           <Route path="analyse" element={<DashboardHomePage />} />
+          <Route path="redaction" element={<DashboardHomePage />} />
           <Route path="acteurs/*" element={<DashboardHomePage />} />
           <Route path=":acteur" element={<RoleSpace />}>
             <Route index element={<DashboardHomePage />} />
@@ -108,10 +110,10 @@ function App() {
               }
             />
             <Route
-              path="contenu"
+              path="redaction"
               element={
-                <RoleGuard allow={['admin']}>
-                  <AdminDashboardPage />
+                <RoleGuard allow={['redacteur', 'coordination']}>
+                  <RedactionDashboardPage />
                 </RoleGuard>
               }
             />

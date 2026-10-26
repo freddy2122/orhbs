@@ -1,4 +1,5 @@
 import { apiFetch, apiUpload } from './api-client'
+import type { WorkflowAction, WorkflowFields } from './editorial-workflow'
 import type { RegistryEntry, RegistryStatus } from '../constants/registryData'
 
 export type EditorialType =
@@ -28,6 +29,8 @@ export type ContenuEditorial = {
   date_publication: string | null
   auteur_full: string
 }
+
+export type CmsContenu = ContenuEditorial & WorkflowFields
 
 export type InscriptionOrdre = {
   id: number
@@ -177,18 +180,29 @@ export function fetchPublicAnnuaire(params?: {
 
 export function fetchCmsContenus(type?: EditorialType) {
   const q = type ? `?type=${type}` : ''
-  return apiFetch<ContenuEditorial[]>(`/api/cms/contenus/${q}`)
+  return apiFetch<CmsContenu[]>(`/api/cms/contenus/${q}`)
 }
 
 export function createCmsContenu(payload: Record<string, unknown>) {
-  return apiFetch<ContenuEditorial>('/api/cms/contenus/', {
+  return apiFetch<CmsContenu>('/api/cms/contenus/', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 }
 
+export function deleteCmsContenu(id: number) {
+  return apiFetch<void>(`/api/cms/contenus/${id}/`, { method: 'DELETE' })
+}
+
+export function workflowCmsContenu(id: number, action: WorkflowAction, motif = '') {
+  return apiFetch<CmsContenu>(`/api/cms/contenus/${id}/workflow/`, {
+    method: 'POST',
+    body: JSON.stringify({ action, motif }),
+  })
+}
+
 export function updateCmsContenu(id: number, payload: Record<string, unknown>) {
-  return apiFetch<ContenuEditorial>(`/api/cms/contenus/${id}/`, {
+  return apiFetch<CmsContenu>(`/api/cms/contenus/${id}/`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
@@ -197,7 +211,7 @@ export function updateCmsContenu(id: number, payload: Record<string, unknown>) {
 export function uploadCmsContenuImage(id: number, file: File) {
   const form = new FormData()
   form.append('image', file)
-  return apiUpload<ContenuEditorial>(`/api/cms/contenus/${id}/upload-image/`, form)
+  return apiUpload<CmsContenu>(`/api/cms/contenus/${id}/upload-image/`, form)
 }
 
 export function fetchCmsAnnuaire() {

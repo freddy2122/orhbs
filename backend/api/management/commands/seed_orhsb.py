@@ -33,6 +33,24 @@ USERS = [
         "poste": "Secrétariat permanent ORHS",
     },
     {
+        "username": "coordination.relecture",
+        "first_name": "Jean",
+        "last_name": "Dossou",
+        "email": "relecture@orhsb.bj",
+        "role": UserProfile.Role.COORDINATION,
+        "scope": UserProfile.Scope.NATIONAL,
+        "poste": "Second relecteur éditorial",
+    },
+    {
+        "username": "redacteur",
+        "first_name": "Aïcha",
+        "last_name": "Zinsou",
+        "email": "redacteur@orhsb.bj",
+        "role": UserProfile.Role.REDACTEUR,
+        "scope": UserProfile.Scope.NATIONAL,
+        "poste": "Rédactrice — site public",
+    },
+    {
         "username": "analyste",
         "first_name": "Koffi",
         "last_name": "Mensah",
@@ -188,7 +206,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Données ORHS initialisées."))
         self.stdout.write(f"Mot de passe par défaut : {DEFAULT_PASSWORD}")
-        self.stdout.write("Comptes nationaux : admin, coordination, analyste, validateur,")
+        self.stdout.write("Comptes nationaux : admin, coordination, coordination.relecture, redacteur, analyste, validateur,")
         self.stdout.write("                    decideur, partenaire.who")
         usernames = [f"drh.{code}" for code, _ in DRH_ACCOUNTS]
         self.stdout.write(f"Comptes DRH ({len(usernames)} départements) : {', '.join(usernames)}")

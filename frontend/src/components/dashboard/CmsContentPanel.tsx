@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { EmptyState } from '../ui/EmptyState'
 import { Spinner } from '../ui/Spinner'
+import { WorkflowBadge, WorkflowControls, WorkflowTrail } from './WorkflowControls'
+import type { WorkflowAction } from '../../lib/editorial-workflow'
 import {
   createCmsPublication,
+  deleteCmsPublication,
   fetchCmsPublications,
-  updateCmsPublication,
   uploadCmsPublicationImage,
   uploadCmsPublicationPdf,
-  type PublicPublication,
+  workflowCmsPublication,
+  type CmsPublication,
 } from '../../lib/public-api'
 
 const TYPE_OPTIONS = [
@@ -23,7 +26,7 @@ const TYPE_OPTIONS = [
 ]
 
 export function CmsContentPanel() {
-  const [items, setItems] = useState<PublicPublication[]>([])
+  const [items, setItems] = useState<CmsPublication[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -34,8 +37,8 @@ export function CmsContentPanel() {
     resume: '',
     annee: String(new Date().getFullYear()),
     mot_cles: '',
-    publie: true,
   })
+  const [busyId, setBusyId] = useState<number | null>(null)
 
   const load = () => {
     setLoading(true)
@@ -61,7 +64,6 @@ export function CmsContentPanel() {
         resume: form.resume,
         annee: form.annee ? Number(form.annee) : null,
         mot_cles: form.mot_cles,
-        publie: form.publie,
       })
       setForm({
         titre: '',
@@ -69,9 +71,8 @@ export function CmsContentPanel() {
         resume: '',
         annee: String(new Date().getFullYear()),
         mot_cles: '',
-        publie: true,
       })
-      setMessage('Publication enregistrée.')
+      setMessage('Brouillon enregistré. Ajoutez un fichier ou une image, puis soumettez-le à relecture.')
       load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Enregistrement impossible.')
@@ -80,16 +81,30 @@ export function CmsContentPanel() {
     }
   }
 
-  const togglePublish = async (item: PublicPublication) => {
+  const handleAction = async (item: CmsPublication, action: WorkflowAction, motif?: string) => {
+    setBusyId(item.id)
+    setError(null)
+    setMessage(null)
     try {
-      await updateCmsPublication(item.id, { publie: !item.publie })
+      await workflowCmsPublication(item.id, action, motif)
       load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Mise à jour impossible.')
+      setError(err instanceof Error ? err.message : 'Action impossible.')
+    } finally {
+      setBusyId(null)
     }
   }
 
-  const handleUpload = async (item: PublicPublication, file: File | undefined) => {
+  const handleDelete = async (item: CmsPublication) => {
+    try {
+      await deleteCmsPublication(item.id)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Suppression impossible.')
+    }
+  }
+
+  const handleUpload = async (item: CmsPublication, file: File | undefined) => {
     if (!file) return
     try {
       await uploadCmsPublicationPdf(item.id, file)
@@ -100,7 +115,7 @@ export function CmsContentPanel() {
     }
   }
 
-  const handleImageUpload = async (item: PublicPublication, file: File | undefined) => {
+  const handleImageUpload = async (item: CmsPublication, file: File | undefined) => {
     if (!file) return
     try {
       await uploadCmsPublicationImage(item.id, file)
@@ -153,20 +168,12 @@ export function CmsContentPanel() {
             className="rounded-lg border border-[#dde3ea] px-3 py-2 text-sm sm:col-span-2"
           />
         </div>
-        <label className="mt-3 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.publie}
-            onChange={(e) => setForm((f) => ({ ...f, publie: e.target.checked }))}
-          />
-          Publier immédiatement sur le site public
-        </label>
         <button
           type="submit"
           disabled={saving}
           className="mt-4 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {saving ? 'Enregistrement…' : 'Enregistrer'}
+          {saving ? 'Enregistrement…' : 'Enregistrer le brouillon'}
         </button>
         {message && <p className="mt-2 text-sm text-health-green">{message}</p>}
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
@@ -185,7 +192,7 @@ export function CmsContentPanel() {
       ) : (
         <ul className="divide-y divide-[#e8ecf0] rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
           {items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <li key={item.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 {item.image_url ? (
                   <img src={item.image_url} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
@@ -195,39 +202,46 @@ export function CmsContentPanel() {
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-institutional-black">{item.titre}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium text-institutional-black">{item.titre}</p>
+                    <WorkflowBadge item={item} />
+                  </div>
                   <p className="text-xs text-dark-text/50">
-                    {item.type_publication_label} · {item.annee ?? '—'} · {item.publie ? 'Publié' : 'Brouillon'}
+                    {item.type_publication_label} · {item.annee ?? '—'}
                     {item.fichier_url ? ' · PDF joint' : ' · sans PDF'}
                   </p>
+                  <WorkflowTrail item={item} />
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
-                  {item.image_url ? 'Remplacer l’image' : 'Ajouter une image'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageUpload(item, e.target.files?.[0])}
-                  />
-                </label>
-                <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
-                  {item.fichier_url ? 'Remplacer le PDF' : 'Joindre un PDF'}
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={(e) => handleUpload(item, e.target.files?.[0])}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => togglePublish(item)}
-                  className="text-xs font-medium text-health-green hover:underline"
-                >
-                  {item.publie ? 'Dépublier' : 'Publier'}
-                </button>
+              <div className="flex flex-col items-start gap-2 sm:items-end">
+                {item.actions_disponibles.includes('edit') && (
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
+                      {item.image_url ? 'Remplacer l’image' : 'Ajouter une image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(item, e.target.files?.[0])}
+                      />
+                    </label>
+                    <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
+                      {item.fichier_url ? 'Remplacer le PDF' : 'Joindre un PDF'}
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => handleUpload(item, e.target.files?.[0])}
+                      />
+                    </label>
+                  </div>
+                )}
+                <WorkflowControls
+                  item={item}
+                  busy={busyId === item.id}
+                  onAction={(action, motif) => handleAction(item, action, motif)}
+                  onDelete={() => handleDelete(item)}
+                />
               </div>
             </li>
           ))}

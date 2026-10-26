@@ -10,20 +10,25 @@ from api.models import (
     ContenuEditorial,
     InscriptionOrdre,
     Publication,
-    UserProfile,
 )
-from api.permissions import IsAdminOrCoordination, user_has_any_role
+from api.permissions import IsCoordination, IsEditorialAuthor
 from api.serializers import (
     CategoriePublicationSerializer,
-    ContenuEditorialSerializer,
+    ContenuEditorialCmsSerializer,
     InscriptionOrdreSerializer,
-    PublicationCreateSerializer,
-    PublicationSerializer,
+    PublicationCmsSerializer,
+)
+from api.services.editorial_workflow import (
+    WorkflowError,
+    apply_transition,
+    can_edit,
+    can_view,
+    is_reviewer,
 )
 
 
 class CategoriePublicationListView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsEditorialAuthor]
 
     def get(self, request):
         categories = CategoriePublication.objects.all()
@@ -31,6 +36,8 @@ class CategoriePublicationListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+        if not is_reviewer(request.user):
+            return Response({"detail": "Non autorisé."}, status=403)
         serializer = CategoriePublicationSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
@@ -38,275 +45,251 @@ class CategoriePublicationListView(APIView):
         return Response(serializer.data, status=201)
 
 
-class PublicationListView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        profile = getattr(request.user, "profile", None)
-        if not profile:
-            return Response({"detail": "Non autorisé."}, status=403)
-
-        qs = Publication.objects.all()
-        
-        # Filtres
-        publie_only = request.query_params.get("publie")
-        if publie_only == "true":
-            qs = qs.filter(publie=True)
-        
-        type_pub = request.query_params.get("type")
-        if type_pub:
-            qs = qs.filter(type_publication=type_pub)
-        
-        categorie_id = request.query_params.get("categorie")
-        if categorie_id:
-            qs = qs.filter(categorie_id=categorie_id)
-        
-        annee = request.query_params.get("annee")
-        if annee:
-            qs = qs.filter(annee=annee)
-        
-        search = request.query_params.get("q", "").strip()
-        if search:
-            qs = qs.filter(
-                titre__icontains=search
-            ) | qs.filter(
-                resume__icontains=search
-            ) | qs.filter(
-                mot_cles__icontains=search
-            )
-
-        # Pour les partenaires et décideurs, ne montrer que les publications publiées
-        if user_has_any_role(request.user, UserProfile.Role.PARTENAIRE, UserProfile.Role.DECIDEUR):
-            qs = qs.filter(publie=True)
-
-        serializer = PublicationSerializer(qs.order_by("-date_publication", "-created_at"), many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        if not user_has_any_role(
-            request.user,
-            UserProfile.Role.ADMIN,
-            UserProfile.Role.COORDINATION,
-        ):
-            return Response({"detail": "Non autorisé."}, status=403)
-
-        data = request.data.copy()
-        if not data.get("slug"):
-            data["slug"] = slugify(data.get("titre", ""))
-        
-        serializer = PublicationCreateSerializer(data=data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
-        
-        publication = serializer.save(cree_par=request.user)
-        if publication.publie and not publication.date_publication:
-            publication.date_publication = timezone.now()
-            publication.save(update_fields=["date_publication"])
-        return Response(PublicationSerializer(publication).data, status=201)
-
-
-class PublicationDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self, pk):
-        try:
-            return Publication.objects.get(pk=pk)
-        except Publication.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        if not getattr(request.user, "profile", None):
-            return Response({"detail": "Non autorisé."}, status=403)
-
-        publication = self.get_object(pk)
-        if not publication:
-            return Response({"detail": "Publication introuvable."}, status=404)
-
-        # Incrémenter le compteur de vues
-        publication.increment_vues()
-
-        serializer = PublicationSerializer(publication)
-        return Response(serializer.data)
-
-    def patch(self, request, pk):
-        if not user_has_any_role(
-            request.user,
-            UserProfile.Role.ADMIN,
-            UserProfile.Role.COORDINATION,
-        ):
-            return Response({"detail": "Non autorisé."}, status=403)
-
-        publication = self.get_object(pk)
-        if not publication:
-            return Response({"detail": "Publication introuvable."}, status=404)
-
-        data = request.data.copy()
-        if "titre" in data and not data.get("slug"):
-            data["slug"] = slugify(data["titre"])
-
-        serializer = PublicationCreateSerializer(publication, data=data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
-        
-        publication = serializer.save(modifie_par=request.user)
-        if publication.publie and not publication.date_publication:
-            publication.date_publication = timezone.now()
-            publication.save(update_fields=["date_publication"])
-        return Response(PublicationSerializer(publication).data)
-
-    def delete(self, request, pk):
-        if not user_has_any_role(
-            request.user,
-            UserProfile.Role.ADMIN,
-            UserProfile.Role.COORDINATION,
-        ):
-            return Response({"detail": "Non autorisé."}, status=403)
-
-        publication = self.get_object(pk)
-        if not publication:
-            return Response({"detail": "Publication introuvable."}, status=404)
-
-        publication.delete()
-        return Response(status=204)
-
-
-class PublicationDownloadView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        from django.http import FileResponse, Http404
-
-        if not getattr(request.user, "profile", None):
-            return Response({"detail": "Non autorisé."}, status=403)
-
-        publication = Publication.objects.filter(pk=pk).first()
-        if not publication or not publication.fichier_pdf:
-            raise Http404("Fichier non disponible")
-
-        # Incrémenter le compteur de téléchargements
-        publication.increment_telechargements()
-
-        return FileResponse(
-            publication.fichier_pdf,
-            as_attachment=True,
-            filename=f"{publication.slug}.pdf"
-        )
-
-
-class PublicationUploadView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
-    parser_classes = [MultiPartParser, FormParser]
-
-    def post(self, request, pk):
-        publication = Publication.objects.filter(pk=pk).first()
-        if not publication:
-            return Response({"detail": "Publication introuvable."}, status=404)
-        fichier = request.FILES.get("fichier_pdf") or request.FILES.get("file")
-        if not fichier:
-            return Response({"detail": "Fichier PDF requis."}, status=400)
-        publication.fichier_pdf = fichier
-        publication.fichier_taille = fichier.size
-        publication.save(update_fields=["fichier_pdf", "fichier_taille", "updated_at"])
-        return Response(PublicationSerializer(publication, context={"request": request}).data)
-
-
-class PublicationImageUploadView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
-    parser_classes = [MultiPartParser, FormParser]
-
-    def post(self, request, pk):
-        publication = Publication.objects.filter(pk=pk).first()
-        if not publication:
-            return Response({"detail": "Publication introuvable."}, status=404)
-        image = request.FILES.get("image")
-        if not image:
-            return Response({"detail": "Image requise."}, status=400)
-        publication.image = image
-        publication.save(update_fields=["image", "updated_at"])
-        return Response(PublicationSerializer(publication, context={"request": request}).data)
-
-
-def _unique_slug(base: str) -> str:
+def _unique_slug_for(model, base: str, exclude_pk=None) -> str:
     slug = slugify(base) or "contenu"
     candidate = slug
     index = 2
-    while ContenuEditorial.objects.filter(slug=candidate).exists():
+    while model.objects.filter(slug=candidate).exclude(pk=exclude_pk).exists():
         candidate = f"{slug}-{index}"
         index += 1
     return candidate
 
 
-class ContenuEditorialListView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+def _strip_protected(data):
+    for key in ("slug", "statut", "publie", "date_publication"):
+        data.pop(key, None)
+    return data
+
+
+class EditorialListView(APIView):
+    """Liste/création d'un type de contenu éditorial avec circuit de relecture."""
+
+    permission_classes = [IsAuthenticated, IsEditorialAuthor]
+    model = None
+    serializer_class = None
+
+    def filter_queryset(self, request, qs):
+        return qs
 
     def get(self, request):
-        qs = ContenuEditorial.objects.all()
-        type_contenu = request.query_params.get("type")
-        if type_contenu:
-            qs = qs.filter(type_contenu=type_contenu)
-        return Response(
-            ContenuEditorialSerializer(qs.order_by("-date_publication", "-created_at"), many=True).data
+        qs = self.filter_queryset(
+            request, self.model.objects.select_related("cree_par", "soumis_par", "valide_par")
         )
+        if not is_reviewer(request.user):
+            qs = qs.filter(cree_par=request.user)
+        statut = request.query_params.get("statut")
+        if statut:
+            qs = qs.filter(statut=statut)
+        data = self.serializer_class(
+            qs.order_by("-date_publication", "-created_at"), many=True, context={"request": request}
+        ).data
+        return Response(data)
 
     def post(self, request):
-        data = request.data.copy()
-        if not data.get("slug"):
-            data["slug"] = _unique_slug(data.get("titre", ""))
-        serializer = ContenuEditorialSerializer(data=data)
+        data = _strip_protected(request.data.copy())
+        data["slug"] = _unique_slug_for(self.model, data.get("titre", ""))
+        serializer = self.serializer_class(data=data, context={"request": request})
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
         item = serializer.save(cree_par=request.user)
-        if item.publie and not item.date_publication:
-            item.date_publication = timezone.now()
-            item.save(update_fields=["date_publication"])
-        return Response(ContenuEditorialSerializer(item).data, status=201)
+        return Response(self.serializer_class(item, context={"request": request}).data, status=201)
 
 
-class ContenuEditorialDetailView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+class EditorialDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsEditorialAuthor]
+    model = None
+    serializer_class = None
+    not_found = "Contenu introuvable."
+
+    def get_item(self, request, pk):
+        item = self.model.objects.filter(pk=pk).first()
+        if not item or not can_view(request.user, item):
+            return None
+        return item
+
+    def get(self, request, pk):
+        item = self.get_item(request, pk)
+        if not item:
+            return Response({"detail": self.not_found}, status=404)
+        return Response(self.serializer_class(item, context={"request": request}).data)
 
     def patch(self, request, pk):
-        item = ContenuEditorial.objects.filter(pk=pk).first()
+        item = self.get_item(request, pk)
         if not item:
-            return Response({"detail": "Contenu introuvable."}, status=404)
-        data = request.data.copy()
-        if "titre" in data and not data.get("slug"):
-            data["slug"] = _unique_slug(data["titre"])
-        serializer = ContenuEditorialSerializer(item, data=data, partial=True)
+            return Response({"detail": self.not_found}, status=404)
+        if not can_edit(request.user, item):
+            return Response(
+                {"detail": "Ce contenu est verrouillé (en relecture ou publié)."}, status=409
+            )
+        data = _strip_protected(request.data.copy())
+        if "titre" in data and data["titre"] != item.titre:
+            data["slug"] = _unique_slug_for(self.model, data["titre"], exclude_pk=item.pk)
+        serializer = self.serializer_class(item, data=data, partial=True, context={"request": request})
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
-        item = serializer.save()
-        if item.publie and not item.date_publication:
-            item.date_publication = timezone.now()
-            item.save(update_fields=["date_publication"])
-        return Response(ContenuEditorialSerializer(item).data)
+        item = serializer.save(modifie_par=request.user)
+        return Response(self.serializer_class(item, context={"request": request}).data)
 
     def delete(self, request, pk):
-        item = ContenuEditorial.objects.filter(pk=pk).first()
+        item = self.get_item(request, pk)
         if not item:
-            return Response({"detail": "Contenu introuvable."}, status=404)
+            return Response({"detail": self.not_found}, status=404)
+        if not can_edit(request.user, item):
+            return Response(
+                {"detail": "Seul un brouillon ou un contenu rejeté peut être supprimé."}, status=409
+            )
         item.delete()
         return Response(status=204)
 
 
-class ContenuEditorialImageUploadView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
-    parser_classes = [MultiPartParser, FormParser]
+class EditorialWorkflowView(APIView):
+    """POST {"action": "submit|publish|reject|unpublish", "motif": "..."}."""
+
+    permission_classes = [IsAuthenticated, IsEditorialAuthor]
+    model = None
+    serializer_class = None
+    not_found = "Contenu introuvable."
 
     def post(self, request, pk):
-        item = ContenuEditorial.objects.filter(pk=pk).first()
-        if not item:
-            return Response({"detail": "Contenu introuvable."}, status=404)
-        image = request.FILES.get("image")
-        if not image:
-            return Response({"detail": "Image requise."}, status=400)
-        item.image = image
-        item.save(update_fields=["image", "updated_at"])
-        return Response(ContenuEditorialSerializer(item, context={"request": request}).data)
+        item = self.model.objects.filter(pk=pk).first()
+        if not item or not can_view(request.user, item):
+            return Response({"detail": self.not_found}, status=404)
+        try:
+            item = apply_transition(
+                request, item, request.data.get("action"), request.data.get("motif", "")
+            )
+        except WorkflowError as exc:
+            return Response({"detail": exc.detail}, status=exc.status)
+        return Response(self.serializer_class(item, context={"request": request}).data)
+
+
+class EditorialMediaUploadView(APIView):
+    permission_classes = [IsAuthenticated, IsEditorialAuthor]
+    parser_classes = [MultiPartParser, FormParser]
+    model = None
+    serializer_class = None
+    not_found = "Contenu introuvable."
+    update_fields = ("image",)
+
+    def get_file(self, request):
+        return request.FILES.get("image")
+
+    def store(self, item, uploaded):
+        item.image = uploaded
+
+    def post(self, request, pk):
+        item = self.model.objects.filter(pk=pk).first()
+        if not item or not can_view(request.user, item):
+            return Response({"detail": self.not_found}, status=404)
+        if not can_edit(request.user, item):
+            return Response({"detail": "Ce contenu est verrouillé."}, status=409)
+        uploaded = self.get_file(request)
+        if not uploaded:
+            return Response({"detail": "Fichier requis."}, status=400)
+        self.store(item, uploaded)
+        item.modifie_par = request.user
+        item.save(update_fields=[*self.update_fields, "modifie_par", "updated_at"])
+        return Response(self.serializer_class(item, context={"request": request}).data)
+
+
+class PublicationListView(EditorialListView):
+    model = Publication
+    serializer_class = PublicationCmsSerializer
+
+    def filter_queryset(self, request, qs):
+        params = request.query_params
+        if params.get("type"):
+            qs = qs.filter(type_publication=params["type"])
+        if params.get("categorie"):
+            qs = qs.filter(categorie_id=params["categorie"])
+        if params.get("annee"):
+            qs = qs.filter(annee=params["annee"])
+        search = params.get("q", "").strip()
+        if search:
+            qs = (
+                qs.filter(titre__icontains=search)
+                | qs.filter(resume__icontains=search)
+                | qs.filter(mot_cles__icontains=search)
+            )
+        return qs
+
+
+class PublicationDetailView(EditorialDetailView):
+    model = Publication
+    serializer_class = PublicationCmsSerializer
+    not_found = "Publication introuvable."
+
+
+class PublicationWorkflowView(EditorialWorkflowView):
+    model = Publication
+    serializer_class = PublicationCmsSerializer
+    not_found = "Publication introuvable."
+
+
+class PublicationDownloadView(APIView):
+    permission_classes = [IsAuthenticated, IsEditorialAuthor]
+
+    def get(self, request, pk):
+        from django.http import FileResponse, Http404
+
+        publication = Publication.objects.filter(pk=pk).first()
+        if not publication or not can_view(request.user, publication) or not publication.fichier_pdf:
+            raise Http404("Fichier non disponible")
+
+        return FileResponse(
+            publication.fichier_pdf,
+            as_attachment=True,
+            filename=f"{publication.slug}.pdf",
+        )
+
+
+class PublicationUploadView(EditorialMediaUploadView):
+    model = Publication
+    serializer_class = PublicationCmsSerializer
+    not_found = "Publication introuvable."
+    update_fields = ("fichier_pdf", "fichier_taille")
+
+    def get_file(self, request):
+        return request.FILES.get("fichier_pdf") or request.FILES.get("file")
+
+    def store(self, item, uploaded):
+        item.fichier_pdf = uploaded
+        item.fichier_taille = uploaded.size
+
+
+class PublicationImageUploadView(EditorialMediaUploadView):
+    model = Publication
+    serializer_class = PublicationCmsSerializer
+    not_found = "Publication introuvable."
+
+
+class ContenuEditorialListView(EditorialListView):
+    model = ContenuEditorial
+    serializer_class = ContenuEditorialCmsSerializer
+
+    def filter_queryset(self, request, qs):
+        if request.query_params.get("type"):
+            qs = qs.filter(type_contenu=request.query_params["type"])
+        return qs
+
+
+class ContenuEditorialDetailView(EditorialDetailView):
+    model = ContenuEditorial
+    serializer_class = ContenuEditorialCmsSerializer
+
+
+class ContenuEditorialWorkflowView(EditorialWorkflowView):
+    model = ContenuEditorial
+    serializer_class = ContenuEditorialCmsSerializer
+
+
+class ContenuEditorialImageUploadView(EditorialMediaUploadView):
+    model = ContenuEditorial
+    serializer_class = ContenuEditorialCmsSerializer
 
 
 class InscriptionOrdreListView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsCoordination]
 
     def get(self, request):
         qs = InscriptionOrdre.objects.all()
@@ -324,7 +307,7 @@ class InscriptionOrdreListView(APIView):
 
 
 class InscriptionOrdreDetailView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrCoordination]
+    permission_classes = [IsAuthenticated, IsCoordination]
 
     def patch(self, request, pk):
         item = InscriptionOrdre.objects.filter(pk=pk).first()

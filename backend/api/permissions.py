@@ -88,6 +88,12 @@ class IsAdminOrCoordination(UserRolePermission):
     allowed_roles = (UserProfile.Role.ADMIN, UserProfile.Role.COORDINATION)
 
 
+class IsEditorialAuthor(UserRolePermission):
+    """Rédaction du site public : rédacteurs et coordination (l'admin ne touche pas au contenu)."""
+
+    allowed_roles = (UserProfile.Role.REDACTEUR, UserProfile.Role.COORDINATION)
+
+
 class IsValidator(UserRolePermission):
     allowed_roles = (UserProfile.Role.VALIDATEUR,)
 
@@ -170,7 +176,7 @@ class IsReadOnlyDecisionMaker(UserRolePermission):
 def declarations_queryset_for_user(user, queryset=None):
     qs = queryset or DeclarationRHS.objects.all()
     profile = get_user_profile(user)
-    if not profile:
+    if not profile or profile.role == UserProfile.Role.REDACTEUR:
         return qs.none()
 
     if profile.role in MANAGEMENT_ROLES or profile.scope == UserProfile.Scope.NATIONAL:
@@ -191,7 +197,7 @@ def declarations_queryset_for_user(user, queryset=None):
 def structures_queryset_for_user(user, queryset=None):
     qs = queryset or Structure.objects.filter(actif=True)
     profile = get_user_profile(user)
-    if not profile:
+    if not profile or profile.role == UserProfile.Role.REDACTEUR:
         return qs.none()
 
     if profile.role in MANAGEMENT_ROLES or profile.scope == UserProfile.Scope.NATIONAL:
@@ -209,7 +215,7 @@ def structures_queryset_for_user(user, queryset=None):
 def agents_queryset_for_user(user, queryset=None):
     qs = queryset if queryset is not None else AgentSante.objects.filter(actif=True)
     profile = get_user_profile(user)
-    if not profile:
+    if not profile or profile.role == UserProfile.Role.REDACTEUR:
         return qs.none()
 
     if profile.role in MANAGEMENT_ROLES or profile.scope == UserProfile.Scope.NATIONAL:

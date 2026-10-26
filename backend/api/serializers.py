@@ -391,7 +391,7 @@ class PublicationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("slug", "telechargements", "vues", "created_at", "updated_at")
+        read_only_fields = ("slug", "publie", "date_publication", "telechargements", "vues", "created_at", "updated_at")
 
     def get_auteur_full(self, obj):
         if obj.cree_par:
@@ -409,9 +409,54 @@ class PublicationSerializer(serializers.ModelSerializer):
         return None
 
 
-class PublicationCreateSerializer(PublicationSerializer):
+WORKFLOW_FIELDS = (
+    "statut",
+    "statut_label",
+    "motif_rejet",
+    "cree_par_nom",
+    "soumis_par_nom",
+    "valide_par_nom",
+    "date_soumission",
+    "date_validation",
+    "actions_disponibles",
+)
+
+
+class EditorialWorkflowSerializerMixin(serializers.Serializer):
+    """Informations de circuit éditorial, réservées aux vues CMS (jamais exposées au public)."""
+
+    statut_label = serializers.CharField(source="get_statut_display", read_only=True)
+    cree_par_nom = serializers.SerializerMethodField()
+    soumis_par_nom = serializers.SerializerMethodField()
+    valide_par_nom = serializers.SerializerMethodField()
+    actions_disponibles = serializers.SerializerMethodField()
+
+    @staticmethod
+    def _name(user):
+        if not user:
+            return ""
+        return user.get_full_name() or user.username
+
+    def get_cree_par_nom(self, obj):
+        return self._name(obj.cree_par)
+
+    def get_soumis_par_nom(self, obj):
+        return self._name(obj.soumis_par)
+
+    def get_valide_par_nom(self, obj):
+        return self._name(obj.valide_par)
+
+    def get_actions_disponibles(self, obj):
+        from api.services.editorial_workflow import available_actions
+
+        request = self.context.get("request")
+        return available_actions(getattr(request, "user", None), obj)
+
+
+class PublicationCmsSerializer(EditorialWorkflowSerializerMixin, PublicationSerializer):
     class Meta(PublicationSerializer.Meta):
-        read_only_fields = PublicationSerializer.Meta.read_only_fields
+        fields = PublicationSerializer.Meta.fields + WORKFLOW_FIELDS
+        read_only_fields = PublicationSerializer.Meta.read_only_fields + WORKFLOW_FIELDS
 
 
 class AuditLogSerializer(serializers.ModelSerializer):
@@ -589,7 +634,7 @@ class ContenuEditorialSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("created_at", "updated_at")
+        read_only_fields = ("publie", "date_publication", "created_at", "updated_at")
 
     def get_auteur_full(self, obj):
         if obj.cree_par:
@@ -600,6 +645,12 @@ class ContenuEditorialSerializer(serializers.ModelSerializer):
         if obj.image:
             return obj.image.url
         return None
+
+
+class ContenuEditorialCmsSerializer(EditorialWorkflowSerializerMixin, ContenuEditorialSerializer):
+    class Meta(ContenuEditorialSerializer.Meta):
+        fields = ContenuEditorialSerializer.Meta.fields + WORKFLOW_FIELDS
+        read_only_fields = ContenuEditorialSerializer.Meta.read_only_fields + WORKFLOW_FIELDS
 
 
 class InscriptionOrdreSerializer(serializers.ModelSerializer):

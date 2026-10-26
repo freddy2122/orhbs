@@ -606,6 +606,7 @@ class Command(BaseCommand):
                     "mot_cles": "RHS, Bénin, ORHS, statistiques, santé",
                     "langue": "fr",
                     "publie": True,
+                    "statut": Publication.Statut.PUBLIE,
                     "date_publication": now - timedelta(days=40),
                     "cree_par": admin,
                 },
@@ -873,6 +874,7 @@ class Command(BaseCommand):
                 "organisation": organisation,
                 "annee": 2026,
                 "publie": True,
+                "statut": ContenuEditorial.Statut.PUBLIE,
                 "date_publication": now - timedelta(days=8 + index),
                 "cree_par": admin,
             }

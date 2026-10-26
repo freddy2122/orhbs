@@ -93,6 +93,7 @@ class UserProfile(models.Model):
     class Role(models.TextChoices):
         ADMIN = "admin", "Administrateur ORHS"
         COORDINATION = "coordination", "Coordination ORHS"
+        REDACTEUR = "redacteur", "Rédacteur"
         ANALYSTE = "analyste", "Analyste / Statisticien"
         VALIDATEUR = "validateur", "Validateur"
         COLLECTEUR = "collecteur", "Collecteur"
@@ -472,7 +473,39 @@ class CategoriePublication(models.Model):
         return self.nom
 
 
-class Publication(models.Model):
+class EditorialWorkflow(models.Model):
+    """Circuit brouillon → relecture → publié partagé par les contenus du site public."""
+
+    class Statut(models.TextChoices):
+        BROUILLON = "brouillon", "Brouillon"
+        EN_RELECTURE = "en_relecture", "En relecture"
+        PUBLIE = "publie", "Publié"
+        REJETE = "rejete", "Rejeté"
+
+    statut = models.CharField(max_length=20, choices=Statut.choices, default=Statut.BROUILLON)
+    motif_rejet = models.TextField(blank=True)
+    soumis_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_soumis",
+    )
+    date_soumission = models.DateTimeField(null=True, blank=True)
+    valide_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_valides",
+    )
+    date_validation = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class Publication(EditorialWorkflow):
     class TypePublication(models.TextChoices):
         RAPPORT_ANNUEL = "rapport_annuel", "Rapport annuel"
         ANNUAIRE_STATISTIQUE = "annuaire", "Annuaire statistique"
@@ -783,7 +816,7 @@ class ConfigAlerte(models.Model):
         return f"Config {self.get_type_alerte_display()}"
 
 
-class ContenuEditorial(models.Model):
+class ContenuEditorial(EditorialWorkflow):
     class TypeContenu(models.TextChoices):
         ACTUALITE = "actualite", "Actualité"
         EVENEMENT = "evenement", "Événement"
@@ -812,6 +845,13 @@ class ContenuEditorial(models.Model):
         null=True,
         blank=True,
         related_name="contenus_editoriaux",
+    )
+    modifie_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contenus_modifies",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

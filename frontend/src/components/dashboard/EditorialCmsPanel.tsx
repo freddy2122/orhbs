@@ -3,15 +3,18 @@ import { FileText } from 'lucide-react'
 import { EmptyState } from '../ui/EmptyState'
 import { Spinner } from '../ui/Spinner'
 import { NewsletterPanel } from './NewsletterPanel'
+import { WorkflowBadge, WorkflowControls, WorkflowTrail } from './WorkflowControls'
+import type { WorkflowAction } from '../../lib/editorial-workflow'
 import {
   createCmsAnnuaire,
   createCmsContenu,
+  deleteCmsContenu,
   fetchCmsAnnuaire,
   fetchCmsContenus,
   updateCmsAnnuaire,
-  updateCmsContenu,
   uploadCmsContenuImage,
-  type ContenuEditorial,
+  workflowCmsContenu,
+  type CmsContenu,
   type EditorialType,
   type InscriptionOrdre,
 } from '../../lib/editorial-api'
@@ -29,6 +32,8 @@ const EDITORIAL_TABS: { id: CmsTab; label: string }[] = [
   { id: 'newsletter', label: 'Newsletter' },
 ]
 
+const COORDINATION_ONLY_TABS: CmsTab[] = ['annuaire', 'newsletter']
+
 const emptyEditorial = {
   titre: '',
   resume: '',
@@ -39,12 +44,13 @@ const emptyEditorial = {
   date_debut: '',
   date_fin: '',
   annee: String(new Date().getFullYear()),
-  publie: true,
 }
 
-export function EditorialCmsPanel() {
+export function EditorialCmsPanel({ canManageDirectory = false }: { canManageDirectory?: boolean }) {
   const [tab, setTab] = useState<CmsTab>('actualite')
-  const [items, setItems] = useState<ContenuEditorial[]>([])
+  const [busyId, setBusyId] = useState<number | null>(null)
+  const visibleTabs = EDITORIAL_TABS.filter((t) => canManageDirectory || !COORDINATION_ONLY_TABS.includes(t.id))
+  const [items, setItems] = useState<CmsContenu[]>([])
   const [annuaire, setAnnuaire] = useState<InscriptionOrdre[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -118,10 +124,9 @@ export function EditorialCmsPanel() {
           date_debut: form.date_debut || null,
           date_fin: form.date_fin || null,
           annee: form.annee ? Number(form.annee) : null,
-          publie: form.publie,
         })
         setForm(emptyEditorial)
-        setMessage('Contenu enregistré.')
+        setMessage('Brouillon enregistré. Soumettez-le à relecture pour qu’il soit publié.')
       }
       load()
     } catch (err) {
@@ -131,7 +136,7 @@ export function EditorialCmsPanel() {
     }
   }
 
-  const handleImageUpload = async (item: ContenuEditorial, file: File | undefined) => {
+  const handleImageUpload = async (item: CmsContenu, file: File | undefined) => {
     if (!file) return
     try {
       await uploadCmsContenuImage(item.id, file)
@@ -142,10 +147,33 @@ export function EditorialCmsPanel() {
     }
   }
 
+  const handleAction = async (item: CmsContenu, action: WorkflowAction, motif?: string) => {
+    setBusyId(item.id)
+    setError(null)
+    setMessage(null)
+    try {
+      await workflowCmsContenu(item.id, action, motif)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Action impossible.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleDelete = async (item: CmsContenu) => {
+    try {
+      await deleteCmsContenu(item.id)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Suppression impossible.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {EDITORIAL_TABS.map((item) => (
+        {visibleTabs.map((item) => (
           <button
             key={item.id}
             type="button"
@@ -201,19 +229,18 @@ export function EditorialCmsPanel() {
             <textarea value={form.contenu} onChange={(e) => setForm((f) => ({ ...f, contenu: e.target.value }))} placeholder={tab === 'faq' ? 'Réponse complète' : 'Contenu'} rows={4} className="rounded-lg border border-[#dde3ea] px-3 py-2 text-sm sm:col-span-2" />
           </div>
         )}
-        <label className="mt-3 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={tab === 'annuaire' ? ordreForm.publie : form.publie}
-            onChange={(e) => {
-              if (tab === 'annuaire') setOrdreForm((f) => ({ ...f, publie: e.target.checked }))
-              else setForm((f) => ({ ...f, publie: e.target.checked }))
-            }}
-          />
-          Publier sur le site public
-        </label>
+        {tab === 'annuaire' && (
+          <label className="mt-3 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={ordreForm.publie}
+              onChange={(e) => setOrdreForm((f) => ({ ...f, publie: e.target.checked }))}
+            />
+            Publier sur le site public
+          </label>
+        )}
         <button type="submit" disabled={saving} className="mt-4 rounded-lg bg-health-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-          {saving ? 'Enregistrement…' : 'Enregistrer'}
+          {saving ? 'Enregistrement…' : tab === 'annuaire' ? 'Enregistrer' : 'Enregistrer le brouillon'}
         </button>
         {message && <p className="mt-2 text-sm text-health-green">{message}</p>}
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
@@ -245,7 +272,7 @@ export function EditorialCmsPanel() {
       ) : (
         <ul className="divide-y divide-[#e8ecf0] rounded-xl border border-[#e8ecf0] bg-white shadow-sm">
           {items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <li key={item.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 {item.image_url ? (
                   <img src={item.image_url} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
@@ -255,23 +282,32 @@ export function EditorialCmsPanel() {
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-institutional-black">{item.titre}</p>
-                  <p className="text-xs text-dark-text/50">{item.categorie || item.type_contenu_label} · {item.publie ? 'Publié' : 'Brouillon'}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium text-institutional-black">{item.titre}</p>
+                    <WorkflowBadge item={item} />
+                  </div>
+                  <p className="text-xs text-dark-text/50">{item.categorie || item.type_contenu_label}</p>
+                  <WorkflowTrail item={item} />
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
-                  {item.image_url ? 'Remplacer l’image' : 'Ajouter une image'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageUpload(item, e.target.files?.[0])}
-                  />
-                </label>
-                <button type="button" onClick={() => updateCmsContenu(item.id, { publie: !item.publie }).then(load)} className="text-xs font-medium text-health-green hover:underline">
-                  {item.publie ? 'Dépublier' : 'Publier'}
-                </button>
+              <div className="flex flex-col items-start gap-2 sm:items-end">
+                {item.actions_disponibles.includes('edit') && (
+                  <label className="cursor-pointer text-xs font-medium text-institutional-black hover:underline">
+                    {item.image_url ? 'Remplacer l’image' : 'Ajouter une image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(item, e.target.files?.[0])}
+                    />
+                  </label>
+                )}
+                <WorkflowControls
+                  item={item}
+                  busy={busyId === item.id}
+                  onAction={(action, motif) => handleAction(item, action, motif)}
+                  onDelete={() => handleDelete(item)}
+                />
               </div>
             </li>
           ))}

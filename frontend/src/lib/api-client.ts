@@ -26,6 +26,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     throw new Error('Impossible de joindre le serveur API.')
   }
 
+  if (response.status === 204) {
+    return undefined as T
+  }
+
   const contentType = response.headers.get('content-type') ?? ''
   if (!contentType.includes('application/json')) {
     throw new Error('Réponse serveur invalide.')

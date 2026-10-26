@@ -1,4 +1,5 @@
 import { apiFetch, apiUpload } from './api-client'
+import type { WorkflowAction, WorkflowFields } from './editorial-workflow'
 import { apiUrl } from './api'
 import type {
   DepartementStatsResponse,
@@ -27,6 +28,8 @@ export type PublicPublication = {
   telechargements: number
   vues: number
 }
+
+export type CmsPublication = PublicPublication & WorkflowFields
 
 export function fetchPublicNationalStats(campagne?: string) {
   const q = campagne ? `?campagne=${encodeURIComponent(campagne)}` : ''
@@ -68,18 +71,29 @@ export function publicPublicationDownloadUrl(id: number) {
 }
 
 export function fetchCmsPublications() {
-  return apiFetch<PublicPublication[]>('/api/cms/publications/')
+  return apiFetch<CmsPublication[]>('/api/cms/publications/')
 }
 
 export function createCmsPublication(payload: Record<string, unknown>) {
-  return apiFetch<PublicPublication>('/api/cms/publications/', {
+  return apiFetch<CmsPublication>('/api/cms/publications/', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 }
 
+export function deleteCmsPublication(id: number) {
+  return apiFetch<void>(`/api/cms/publications/${id}/`, { method: 'DELETE' })
+}
+
+export function workflowCmsPublication(id: number, action: WorkflowAction, motif = '') {
+  return apiFetch<CmsPublication>(`/api/cms/publications/${id}/workflow/`, {
+    method: 'POST',
+    body: JSON.stringify({ action, motif }),
+  })
+}
+
 export function updateCmsPublication(id: number, payload: Record<string, unknown>) {
-  return apiFetch<PublicPublication>(`/api/cms/publications/${id}/`, {
+  return apiFetch<CmsPublication>(`/api/cms/publications/${id}/`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
@@ -88,11 +102,11 @@ export function updateCmsPublication(id: number, payload: Record<string, unknown
 export function uploadCmsPublicationPdf(id: number, file: File) {
   const form = new FormData()
   form.append('fichier_pdf', file)
-  return apiUpload<PublicPublication>(`/api/cms/publications/${id}/upload/`, form)
+  return apiUpload<CmsPublication>(`/api/cms/publications/${id}/upload/`, form)
 }
 
 export function uploadCmsPublicationImage(id: number, file: File) {
   const form = new FormData()
   form.append('image', file)
-  return apiUpload<PublicPublication>(`/api/cms/publications/${id}/upload-image/`, form)
+  return apiUpload<CmsPublication>(`/api/cms/publications/${id}/upload-image/`, form)
 }

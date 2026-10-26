@@ -5,16 +5,18 @@ import {
   ClipboardList,
   Crown,
   FlaskConical,
+  PenLine,
   Settings,
   Shield,
   UserCog,
   Users,
 } from 'lucide-react'
 
-/** 7 rôles RBAC ORHS Bénin */
+/** 8 rôles RBAC ORHS Bénin */
 export type DashboardRole =
   | 'admin'
   | 'coordination'
+  | 'redacteur'
   | 'analyste'
   | 'validateur'
   | 'collecteur'
@@ -45,6 +47,13 @@ export const DASHBOARD_ROLES: DashboardRoleMeta[] = [
     description: 'Secrétariat permanent — pilotage et coordination',
     icon: Shield,
     defaultRoute: '/dashboard/coordination/executif',
+  },
+  {
+    id: 'redacteur',
+    label: 'Rédacteur',
+    description: 'Rédaction des contenus du site public — soumis à relecture',
+    icon: PenLine,
+    defaultRoute: '/dashboard/redacteur/redaction',
   },
   {
     id: 'analyste',
@@ -114,6 +123,12 @@ export const DASHBOARD_NAV: NavItem[] = [
     section: 'analyse',
     icon: BarChart3,
     roles: ['analyste', 'partenaire', 'coordination', 'decideur'],
+  },
+  {
+    label: 'Rédaction & publication',
+    section: 'redaction',
+    icon: PenLine,
+    roles: ['redacteur', 'coordination'],
   },
   {
     label: 'Administration',

@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -50,12 +51,24 @@ def _client_ip(request):
     return request.META.get("REMOTE_ADDR")
 
 
+def _check_user_profile(profile_data):
+    profile_data = profile_data or {}
+    role = profile_data.get("role") or UserProfile.Role.COLLECTEUR
+    scope = profile_data.get("scope") or UserProfile.Scope.NATIONAL
+    if role not in UserProfile.Role.values:
+        raise ValidationError({"role": "Rôle inconnu."})
+    if scope not in UserProfile.Scope.values:
+        raise ValidationError({"scope": "Périmètre inconnu."})
+    return role, scope
+
+
 def _apply_user_profile(user, profile_data):
     if not profile_data:
         return
+    role, scope = _check_user_profile(profile_data)
     defaults = {
-        "role": profile_data.get("role") or UserProfile.Role.COLLECTEUR,
-        "scope": profile_data.get("scope") or UserProfile.Scope.NATIONAL,
+        "role": role,
+        "scope": scope,
         "poste": profile_data.get("poste") or "",
         "organisation": profile_data.get("organisation") or "",
     }
@@ -201,6 +214,7 @@ class UserManagementView(APIView):
             return Response({"detail": "Identifiant et mot de passe sont requis."}, status=400)
         if User.objects.filter(username=username).exists():
             return Response({"detail": "Cet identifiant existe déjà."}, status=400)
+        _check_user_profile(data.get("profile"))
 
         user = User.objects.create_user(
             username=username,
@@ -249,6 +263,8 @@ class UserDetailView(APIView):
             return Response({"detail": "Utilisateur introuvable."}, status=404)
 
         data = request.data
+        if data.get("profile"):
+            _check_user_profile(data.get("profile"))
         user.email = (data.get("email") if "email" in data else user.email) or ""
         if "first_name" in data:
             user.first_name = data.get("first_name") or ""

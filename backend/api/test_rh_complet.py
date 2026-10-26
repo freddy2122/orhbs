@@ -164,6 +164,13 @@ class RhCompletTests(TestCase):
 
     @override_settings(MEDIA_ROOT="/tmp/orhsb-test-media")
     def test_publication_pdf_upload(self):
+        coord = User.objects.create_user(username="rhcoord", password="coord12345")
+        UserProfile.objects.create(user=coord, role=UserProfile.Role.COORDINATION, scope=UserProfile.Scope.NATIONAL)
+        self.client.post(
+            reverse("auth-login"),
+            data={"username": "rhcoord", "password": "coord12345"},
+            content_type="application/json",
+        )
         pub = Publication.objects.create(titre="Rapport test", slug="rapport-test", type_publication="note")
         pdf = SimpleUploadedFile("doc.pdf", b"%PDF-1.4 test", content_type="application/pdf")
         response = self.client.post(reverse("cms-publication-upload", args=[pub.id]), data={"fichier_pdf": pdf})
