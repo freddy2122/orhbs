@@ -17,12 +17,16 @@ export type ZoneRow = {
   departement?: DepartmentRow | null
 }
 
+export type StructureNiveau = 'central' | 'intermediaire' | 'peripherique' | 'prive'
+
 export type StructureRow = {
   id: number
   code: string
   nom: string
   type_structure: string
   type_structure_label: string
+  niveau: StructureNiveau
+  niveau_label: string
   actif: boolean
   departement?: DepartmentRow | null
   zone_sanitaire?: ZoneRow | null

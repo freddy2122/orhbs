@@ -55,6 +55,8 @@ class StructureSerializer(serializers.ModelSerializer):
         source="get_type_structure_display",
         read_only=True,
     )
+    niveau = serializers.CharField(read_only=True)
+    niveau_label = serializers.SerializerMethodField()
     departement_id = serializers.PrimaryKeyRelatedField(
         source="departement",
         queryset=Departement.objects.all(),
@@ -69,6 +71,23 @@ class StructureSerializer(serializers.ModelSerializer):
         write_only=True,
     )
 
+    def get_niveau_label(self, obj):
+        return Structure.Niveau(obj.niveau).label
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if self.instance is not None and not {"type_structure", "departement", "zone_sanitaire"} & attrs.keys():
+            return attrs
+        instance = self.instance
+        error = Structure.hierarchy_error(
+            attrs.get("type_structure", getattr(instance, "type_structure", Structure.TypeStructure.CS)),
+            attrs.get("departement", getattr(instance, "departement", None)),
+            attrs["zone_sanitaire"] if "zone_sanitaire" in attrs else getattr(instance, "zone_sanitaire", None),
+        )
+        if error:
+            raise serializers.ValidationError(error)
+        return attrs
+
     class Meta:
         model = Structure
         fields = (
@@ -77,6 +96,8 @@ class StructureSerializer(serializers.ModelSerializer):
             "nom",
             "type_structure",
             "type_structure_label",
+            "niveau",
+            "niveau_label",
             "departement",
             "departement_id",
             "zone_sanitaire",

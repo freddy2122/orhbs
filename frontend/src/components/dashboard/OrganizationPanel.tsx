@@ -9,19 +9,51 @@ import {
   type DepartmentRow,
   type OrganizationData,
   type OrgKind,
+  type StructureNiveau,
   type StructureRow,
   type ZoneRow,
 } from '../../lib/organization-admin-api'
 
-const STRUCTURE_TYPES = [
-  { value: 'CHU', label: 'CHU' },
-  { value: 'HZ', label: 'Hôpital de zone' },
-  { value: 'CS', label: 'Centre de santé' },
-  { value: 'CSCOM', label: 'CSCOM' },
-  { value: 'CNHU', label: 'CNHU' },
-  { value: 'PRIVE', label: 'Privé' },
-  { value: 'DIRECTION', label: 'Direction départementale' },
+/** Pyramide sanitaire du Bénin : niveau → types de structures. */
+const PYRAMIDE: { niveau: StructureNiveau; label: string; types: { value: string; label: string }[] }[] = [
+  {
+    niveau: 'central',
+    label: 'Niveau central',
+    types: [{ value: 'CNHU', label: 'Centre national hospitalier universitaire (CNHU)' }],
+  },
+  {
+    niveau: 'intermediaire',
+    label: 'Niveau intermédiaire — département',
+    types: [
+      { value: 'DIRECTION', label: 'Direction départementale de la santé (DDS)' },
+      { value: 'CHU', label: 'Centre hospitalier universitaire départemental (CHUD)' },
+    ],
+  },
+  {
+    niveau: 'peripherique',
+    label: 'Niveau périphérique — zone sanitaire',
+    types: [
+      { value: 'HZ', label: 'Hôpital de zone' },
+      { value: 'CSCOM', label: 'Centre de santé de commune' },
+      { value: 'CS', label: 'Centre de santé d’arrondissement' },
+      { value: 'UVS', label: 'Unité villageoise de santé' },
+      { value: 'DISPENSAIRE', label: 'Dispensaire / maternité isolé(e)' },
+    ],
+  },
+  {
+    niveau: 'prive',
+    label: 'Secteur privé et confessionnel',
+    types: [
+      { value: 'PRIVE', label: 'Établissement privé' },
+      { value: 'CONFESSIONNEL', label: 'Établissement confessionnel / associatif' },
+    ],
+  },
 ]
+
+const TYPE_ORDER = PYRAMIDE.flatMap((level) => level.types.map((type) => type.value))
+const NIVEAU_PAR_TYPE: Record<string, StructureNiveau> = Object.fromEntries(
+  PYRAMIDE.flatMap((level) => level.types.map((type) => [type.value, level.niveau])),
+)
 
 type OrgItem = DepartmentRow | ZoneRow | StructureRow
 
@@ -83,21 +115,6 @@ export function OrganizationPanel() {
     setEditingId(null)
     setEditingKind(null)
   }
-
-  const matches = (item: { nom: string; code: string }) => {
-    const q = query.trim().toLowerCase()
-    if (!q) return true
-    return item.nom.toLowerCase().includes(q) || item.code.toLowerCase().includes(q)
-  }
-
-  const visible = useMemo(() => {
-    const keep = (item: OrgItem) => matches(item) && (showInactive || isActive(item))
-    return {
-      departements: organization.departements.filter(keep),
-      zones: organization.zones.filter(keep),
-      structures: organization.structures.filter(keep),
-    }
-  }, [organization, query, showInactive])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -197,6 +214,80 @@ export function OrganizationPanel() {
     </div>
   )
 
+  const statusBadge = (item: OrgItem) => (
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+        isActive(item) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+      }`}
+    >
+      {isActive(item) ? 'Actif' : 'Inactif'}
+    </span>
+  )
+
+  const renderStructure = (structure: StructureRow) => (
+    <li key={structure.id} className="rounded-lg bg-light-gray px-3 py-2 text-sm text-dark-text/80">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span>
+          {structure.nom} <span className="text-xs text-dark-text/50">({structure.code})</span>
+        </span>
+        {statusBadge(structure)}
+      </div>
+      {renderActions('structure', structure)}
+    </li>
+  )
+
+  const tree = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const hit = (item: { nom: string; code: string }) =>
+      !q || item.nom.toLowerCase().includes(q) || item.code.toLowerCase().includes(q)
+    const keep = (item: OrgItem) => showInactive || isActive(item)
+    const typeRank = (type: string) => {
+      const index = TYPE_ORDER.indexOf(type)
+      return index === -1 ? TYPE_ORDER.length : index
+    }
+    const typeLabel = (structure: StructureRow) => structure.type_structure_label
+
+    const structures = organization.structures.filter(keep)
+    const central = structures.filter((st) => st.niveau === 'central' && hit(st))
+
+    const departements = organization.departements
+      .filter(keep)
+      .map((department) => {
+        const deptHit = hit(department)
+        const deptStructures = structures.filter((st) => st.departement?.id === department.id && st.niveau !== 'central')
+        const match = (st: StructureRow) => deptHit || hit(st)
+
+        const zones = organization.zones
+          .filter((zone) => keep(zone) && zone.departement?.id === department.id)
+          .map((zone) => {
+            const zoneHit = deptHit || hit(zone)
+            const inZone = deptStructures.filter(
+              (st) => st.zone_sanitaire?.id === zone.id && st.niveau !== 'intermediaire',
+            )
+            const shown = inZone.filter((st) => zoneHit || hit(st))
+            const groups = [...new Set(shown.map((st) => st.type_structure))]
+              .sort((a, b) => typeRank(a) - typeRank(b))
+              .map((type) => {
+                const items = shown.filter((st) => st.type_structure === type)
+                return { type, label: typeLabel(items[0]), items }
+              })
+            return { zone, count: shown.length, groups, visible: zoneHit || shown.length > 0 }
+          })
+          .filter((node) => node.visible)
+
+        const intermediate = deptStructures.filter((st) => st.niveau === 'intermediaire' && match(st))
+        const unassigned = deptStructures.filter(
+          (st) => st.niveau !== 'intermediaire' && !st.zone_sanitaire && match(st),
+        )
+        const total =
+          zones.reduce((sum, node) => sum + node.count, 0) + intermediate.length + unassigned.length
+        return { department, zones, intermediate, unassigned, total, visible: deptHit || total > 0 || zones.length > 0 }
+      })
+      .filter((node) => node.visible)
+
+    return { central, departements }
+  }, [organization, query, showInactive])
+
   return (
     <div className="space-y-6">
       {confirm && (
@@ -241,7 +332,7 @@ export function OrganizationPanel() {
           </h2>
         </div>
         <p className="mb-4 text-sm text-dark-text/60">
-          L’administrateur saisit ici les départements, zones sanitaires, CHU, hôpitaux de zone, centres de santé et DDS.
+          Organisation selon la pyramide sanitaire : un département contient ses zones sanitaires, et chaque zone regroupe ses structures par type.
         </p>
 
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
@@ -254,7 +345,7 @@ export function OrganizationPanel() {
             >
               <option value="departement">Département</option>
               <option value="zone">Zone sanitaire</option>
-              <option value="structure">Structure</option>
+              <option value="structure">Structure (par type)</option>
             </select>
           </label>
 
@@ -319,10 +410,14 @@ export function OrganizationPanel() {
                   onChange={(event) => setForm((current) => ({ ...current, type_structure: event.target.value }))}
                   className="rounded-lg border border-[#dde3ea] bg-white px-3 py-2 outline-none focus:border-health-green/40 focus:ring-2 focus:ring-health-green/15"
                 >
-                  {STRUCTURE_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
+                  {PYRAMIDE.map((level) => (
+                    <optgroup key={level.niveau} label={level.label}>
+                      {level.types.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </label>
@@ -334,7 +429,9 @@ export function OrganizationPanel() {
                   onChange={(event) => setForm((current) => ({ ...current, zone_sanitaire_id: event.target.value }))}
                   className="rounded-lg border border-[#dde3ea] bg-white px-3 py-2 outline-none focus:border-health-green/40 focus:ring-2 focus:ring-health-green/15"
                 >
-                  <option value="">Aucune (ex. DDS)</option>
+                  <option value="">
+                    {NIVEAU_PAR_TYPE[form.type_structure] === 'peripherique' ? 'Sélectionner (obligatoire)' : 'Aucune (rattachée au département)'}
+                  </option>
                   {organization.zones
                     .filter((zone) => isActive(zone) && (!form.departement_id || String(zone.departement?.id ?? '') === form.departement_id))
                     .map((zone) => (
@@ -384,82 +481,93 @@ export function OrganizationPanel() {
         </label>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-institutional-black">Départements</h3>
-          {loading ? (
-            <p className="text-sm text-dark-text/60">Chargement...</p>
-          ) : visible.departements.length === 0 ? (
-            <EmptyState title="Aucun département" description="Ajoutez un département depuis le formulaire." />
-          ) : (
-            <ul className="space-y-2 text-sm text-dark-text/70">
-              {visible.departements.map((department) => (
-                <li key={department.id} className="rounded-lg bg-light-gray px-2 py-2">
-                  <div className="mb-1 flex items-center justify-between gap-2">
-                    <div>
-                      {department.nom} <span className="text-xs text-dark-text/50">({department.code})</span>
-                    </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${isActive(department) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {isActive(department) ? 'Actif' : 'Inactif'}
-                    </span>
-                  </div>
-                  {renderActions('departement', department)}
-                </li>
-              ))}
-            </ul>
+      {loading ? (
+        <p className="text-sm text-dark-text/60">Chargement...</p>
+      ) : (
+        <div className="space-y-4">
+          {tree.central.length > 0 && (
+            <section className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
+              <h3 className="mb-3 font-semibold text-institutional-black">Niveau central</h3>
+              <ul className="space-y-2">{tree.central.map(renderStructure)}</ul>
+            </section>
           )}
-        </div>
 
-        <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-institutional-black">Zones sanitaires</h3>
-          {visible.zones.length === 0 ? (
-            <p className="text-sm text-dark-text/60">Aucune zone enregistrée.</p>
-          ) : (
-            <ul className="space-y-2 text-sm text-dark-text/70">
-              {visible.zones.map((zone) => (
-                <li key={zone.id} className="rounded-lg bg-light-gray px-2 py-2">
-                  <div className="mb-1 flex items-center justify-between gap-2">
-                    <div>
-                      {zone.nom} <span className="text-xs text-dark-text/50">({zone.departement?.nom ?? '—'})</span>
-                    </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${isActive(zone) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {isActive(zone) ? 'Actif' : 'Inactif'}
+          <section className="space-y-2">
+            <h3 className="font-semibold text-institutional-black">
+              Niveau intermédiaire et périphérique — par département
+            </h3>
+            {tree.departements.length === 0 ? (
+              <EmptyState title="Aucun résultat" description="Ajustez la recherche ou ajoutez un département." />
+            ) : (
+              tree.departements.map((node) => (
+                <details
+                  key={node.department.id}
+                  open={query.trim() !== ''}
+                  className="rounded-xl border border-[#e8ecf0] bg-white shadow-sm"
+                >
+                  <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3">
+                    <span className="font-medium text-institutional-black">
+                      {node.department.nom}{' '}
+                      <span className="text-xs font-normal text-dark-text/50">({node.department.code})</span>
                     </span>
-                  </div>
-                  {renderActions('zone', zone)}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                    <span className="flex items-center gap-2 text-xs text-dark-text/60">
+                      {node.zones.length} zone(s) · {node.total} structure(s)
+                      {statusBadge(node.department)}
+                    </span>
+                  </summary>
+                  <div className="space-y-4 border-t border-[#e8ecf0] px-4 py-4">
+                    {renderActions('departement', node.department)}
 
-        <div className="rounded-xl border border-[#e8ecf0] bg-white p-4 shadow-sm">
-          <h3 className="mb-3 font-semibold text-institutional-black">Structures</h3>
-          {visible.structures.length === 0 ? (
-            <p className="text-sm text-dark-text/60">Aucune structure enregistrée.</p>
-          ) : (
-            <ul className="max-h-[32rem] space-y-2 overflow-y-auto text-sm text-dark-text/70">
-              {visible.structures.map((structure) => (
-                <li key={structure.id} className="rounded-lg bg-light-gray px-2 py-2">
-                  <div className="mb-1 flex items-center justify-between gap-2">
-                    <div>
-                      {structure.nom}{' '}
-                      <span className="text-xs text-dark-text/50">
-                        ({structure.type_structure_label}
-                        {structure.zone_sanitaire ? ` · ${structure.zone_sanitaire.nom}` : ''})
-                      </span>
-                    </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${isActive(structure) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {isActive(structure) ? 'Actif' : 'Inactif'}
-                    </span>
+                    {node.intermediate.length > 0 && (
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-dark-text/60">
+                          Niveau intermédiaire — DDS et hôpitaux départementaux
+                        </h4>
+                        <ul className="space-y-2">{node.intermediate.map(renderStructure)}</ul>
+                      </div>
+                    )}
+
+                    {node.zones.map((zoneNode) => (
+                      <details key={zoneNode.zone.id} open={query.trim() !== ''} className="rounded-lg border border-[#e8ecf0]">
+                        <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 bg-light-gray px-3 py-2 text-sm">
+                          <span className="font-medium">{zoneNode.zone.nom}</span>
+                          <span className="flex items-center gap-2 text-xs text-dark-text/60">
+                            {zoneNode.count} structure(s)
+                            {statusBadge(zoneNode.zone)}
+                          </span>
+                        </summary>
+                        <div className="space-y-3 px-3 py-3">
+                          {renderActions('zone', zoneNode.zone)}
+                          {zoneNode.groups.length === 0 && (
+                            <p className="text-xs text-dark-text/50">Aucune structure enregistrée dans cette zone.</p>
+                          )}
+                          {zoneNode.groups.map((group) => (
+                            <div key={group.type}>
+                              <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-dark-text/60">
+                                {group.label} ({group.items.length})
+                              </h4>
+                              <ul className="space-y-2">{group.items.map(renderStructure)}</ul>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    ))}
+
+                    {node.unassigned.length > 0 && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
+                          Sans zone sanitaire — à rattacher ({node.unassigned.length})
+                        </h4>
+                        <ul className="space-y-2">{node.unassigned.map(renderStructure)}</ul>
+                      </div>
+                    )}
                   </div>
-                  {renderActions('structure', structure)}
-                </li>
-              ))}
-            </ul>
-          )}
+                </details>
+              ))
+            )}
+          </section>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -28,6 +28,12 @@ from api.permissions import (
     get_user_profile,
     user_has_any_role,
 )
+from api.services.account_security import (
+    check_new_password,
+    clear_lockout,
+    send_activation_email,
+    set_user_password,
+)
 from api.serializers import (
     AgentQualificationSerializer,
     AlerteEmailSerializer,
@@ -151,6 +157,9 @@ class OrganizationManagementView(APIView):
                 return Response({"detail": "Département introuvable."}, status=404)
             zone_id = request.data.get("zone_sanitaire_id") or None
             zone = ZoneSanitaire.objects.filter(pk=zone_id).first() if zone_id else None
+            error = Structure.hierarchy_error(type_structure, departement, zone)
+            if error:
+                return Response({"detail": error}, status=400)
             structure, created = Structure.objects.update_or_create(
                 code=code,
                 defaults={
@@ -210,20 +219,43 @@ class UserManagementView(APIView):
         data = request.data
         username = (data.get("username") or "").strip()
         password = data.get("password")
-        if not username or not password:
-            return Response({"detail": "Identifiant et mot de passe sont requis."}, status=400)
+        email = (data.get("email") or "").strip()
+        if not username:
+            return Response({"detail": "L'identifiant est requis."}, status=400)
+        if not password and not email:
+            return Response(
+                {"detail": "Renseignez une adresse e-mail (invitation) ou un mot de passe."}, status=400
+            )
         if User.objects.filter(username=username).exists():
             return Response({"detail": "Cet identifiant existe déjà."}, status=400)
-        _check_user_profile(data.get("profile"))
+        role, _scope = _check_user_profile(data.get("profile"))
+
+        first_name = (data.get("first_name") or "").strip()
+        last_name = (data.get("last_name") or "").strip()
+        if password:
+            check_new_password(
+                User(username=username, email=email, first_name=first_name, last_name=last_name),
+                password,
+                role=role,
+            )
 
         user = User.objects.create_user(
             username=username,
-            email=(data.get("email") or "").strip(),
-            password=password,
-            first_name=(data.get("first_name") or "").strip(),
-            last_name=(data.get("last_name") or "").strip(),
+            email=email,
+            password=password or None,
+            first_name=first_name,
+            last_name=last_name,
         )
+        if not password:
+            user.set_unusable_password()
+            user.save(update_fields=["password"])
         _apply_user_profile(user, data.get("profile") or {})
+        invitation_sent = False
+        if not password:
+            try:
+                invitation_sent = send_activation_email(user, invitation=True)
+            except Exception:
+                invitation_sent = False
 
         AuditLog.objects.create(
             user=request.user,
@@ -237,7 +269,9 @@ class UserManagementView(APIView):
         )
 
         user.refresh_from_db()
-        return Response(UserSerializer(user).data, status=201)
+        payload = UserSerializer(user).data
+        payload["invitation_envoyee"] = invitation_sent
+        return Response(payload, status=201)
 
 
 class UserDetailView(APIView):
@@ -265,14 +299,17 @@ class UserDetailView(APIView):
         data = request.data
         if data.get("profile"):
             _check_user_profile(data.get("profile"))
+        new_role = (data.get("profile") or {}).get("role") or getattr(getattr(user, "profile", None), "role", None)
+        if data.get("password"):
+            check_new_password(user, data["password"], role=new_role)
         user.email = (data.get("email") if "email" in data else user.email) or ""
         if "first_name" in data:
             user.first_name = data.get("first_name") or ""
         if "last_name" in data:
             user.last_name = data.get("last_name") or ""
-        if data.get("password"):
-            user.set_password(data["password"])
         user.save()
+        if data.get("password"):
+            set_user_password(user, data["password"], role=new_role)
 
         if data.get("profile"):
             _apply_user_profile(user, data.get("profile"))
@@ -722,3 +759,53 @@ class OrganizationDetailView(APIView):
         else:
             ip = request.META.get("REMOTE_ADDR")
         return ip
+
+
+class UserInviteView(APIView):
+    """Renvoie un lien d'activation / de réinitialisation à l'adresse e-mail du compte."""
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request, pk):
+        user = User.objects.filter(pk=pk).first()
+        if not user:
+            return Response({"detail": "Utilisateur introuvable."}, status=404)
+        if not user.email:
+            return Response({"detail": "Ce compte n'a pas d'adresse e-mail."}, status=400)
+        invitation = not user.has_usable_password()
+        try:
+            send_activation_email(user, invitation=invitation)
+        except Exception:
+            return Response({"detail": "Envoi de l'e-mail impossible. Vérifiez la configuration e-mail."}, status=502)
+        AuditLog.objects.create(
+            user=request.user,
+            action=AuditLog.Action.UPDATE,
+            model_name="User",
+            object_id=str(user.pk),
+            object_repr=user.username,
+            description=f"Lien {'d’activation' if invitation else 'de réinitialisation'} envoyé à {user.username}",
+            ip_address=_client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+        return Response({"detail": f"E-mail envoyé à {user.email}."})
+
+
+class UserUnlockView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request, pk):
+        user = User.objects.filter(pk=pk).first()
+        if not user:
+            return Response({"detail": "Utilisateur introuvable."}, status=404)
+        clear_lockout(user.username)
+        AuditLog.objects.create(
+            user=request.user,
+            action=AuditLog.Action.UPDATE,
+            model_name="User",
+            object_id=str(user.pk),
+            object_repr=user.username,
+            description=f"Compte {user.username} déverrouillé",
+            ip_address=_client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+        return Response({"detail": "Compte déverrouillé."})

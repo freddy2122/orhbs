@@ -45,13 +45,43 @@ class ZoneSanitaire(models.Model):
 
 class Structure(models.Model):
     class TypeStructure(models.TextChoices):
-        CHU = "CHU", "Centre hospitalier universitaire"
-        HZ = "HZ", "Hôpital de zone"
-        CS = "CS", "Centre de santé"
-        CSCOM = "CSCOM", "Centre de santé de commune"
+        # Niveau central
         CNHU = "CNHU", "Centre national hospitalier universitaire"
+        # Niveau intermédiaire (département)
+        DIRECTION = "DIRECTION", "Direction départementale de la santé (DDS)"
+        CHU = "CHU", "Centre hospitalier universitaire départemental (CHUD)"
+        # Niveau périphérique (zone sanitaire)
+        HZ = "HZ", "Hôpital de zone"
+        CSCOM = "CSCOM", "Centre de santé de commune"
+        CS = "CS", "Centre de santé d'arrondissement"
+        UVS = "UVS", "Unité villageoise de santé"
+        DISPENSAIRE = "DISPENSAIRE", "Dispensaire / maternité isolé(e)"
+        # Secteur privé et confessionnel
         PRIVE = "PRIVE", "Établissement privé"
-        DIRECTION = "DIRECTION", "Direction départementale"
+        CONFESSIONNEL = "CONFESSIONNEL", "Établissement confessionnel / associatif"
+
+    class Niveau(models.TextChoices):
+        CENTRAL = "central", "Niveau central"
+        INTERMEDIAIRE = "intermediaire", "Niveau intermédiaire (département)"
+        PERIPHERIQUE = "peripherique", "Niveau périphérique (zone sanitaire)"
+        PRIVE = "prive", "Secteur privé et confessionnel"
+
+    NIVEAU_PAR_TYPE = {
+        TypeStructure.CNHU: Niveau.CENTRAL,
+        TypeStructure.DIRECTION: Niveau.INTERMEDIAIRE,
+        TypeStructure.CHU: Niveau.INTERMEDIAIRE,
+        TypeStructure.HZ: Niveau.PERIPHERIQUE,
+        TypeStructure.CSCOM: Niveau.PERIPHERIQUE,
+        TypeStructure.CS: Niveau.PERIPHERIQUE,
+        TypeStructure.UVS: Niveau.PERIPHERIQUE,
+        TypeStructure.DISPENSAIRE: Niveau.PERIPHERIQUE,
+        TypeStructure.PRIVE: Niveau.PRIVE,
+        TypeStructure.CONFESSIONNEL: Niveau.PRIVE,
+    }
+
+    @property
+    def niveau(self) -> str:
+        return self.NIVEAU_PAR_TYPE.get(self.type_structure, self.Niveau.PERIPHERIQUE).value
 
     code = models.SlugField(max_length=50, unique=True)
     nom = models.CharField(max_length=200)
@@ -82,11 +112,22 @@ class Structure(models.Model):
     def __str__(self) -> str:
         return self.nom
 
+    @classmethod
+    def hierarchy_error(cls, type_structure, departement, zone_sanitaire):
+        """Cohérence avec la pyramide sanitaire ; renvoie un message d'erreur ou None."""
+        if type_structure not in cls.TypeStructure.values:
+            return "Type de structure inconnu."
+        if zone_sanitaire and departement and zone_sanitaire.departement_id != departement.id:
+            return "La zone sanitaire doit appartenir au même département que la structure."
+        niveau = cls.NIVEAU_PAR_TYPE.get(type_structure)
+        if niveau == cls.Niveau.PERIPHERIQUE and not zone_sanitaire:
+            return "Une structure du niveau périphérique doit être rattachée à une zone sanitaire."
+        return None
+
     def clean(self):
-        if self.zone_sanitaire and self.zone_sanitaire.departement_id != self.departement_id:
-            raise ValidationError(
-                "La zone sanitaire doit appartenir au même département que la structure."
-            )
+        error = self.hierarchy_error(self.type_structure, self.departement, self.zone_sanitaire)
+        if error:
+            raise ValidationError(error)
 
 
 class UserProfile(models.Model):
@@ -576,6 +617,28 @@ class Publication(EditorialWorkflow):
     def increment_vues(self):
         self.vues += 1
         self.save(update_fields=["vues"])
+
+
+class PasswordHistory(models.Model):
+    """Empreintes des anciens mots de passe, pour interdire leur réutilisation."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="password_history"
+    )
+    password_hash = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+
+class LoginLockout(models.Model):
+    """Compteur d'échecs de connexion par identifiant (existant ou non)."""
+
+    username = models.CharField(max_length=150, unique=True)
+    failed_count = models.PositiveSmallIntegerField(default=0)
+    last_failed_at = models.DateTimeField(null=True, blank=True)
+    locked_until = models.DateTimeField(null=True, blank=True)
 
 
 class AuditLog(models.Model):

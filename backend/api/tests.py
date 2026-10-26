@@ -132,6 +132,43 @@ class OrganizationCrudTests(TestCase):
         self.assertFalse(Structure.objects.filter(pk=struct.id).exists())
 
 
+    def _create_structure(self, **extra):
+        payload = {"kind": "structure", "code": "st-x", "nom": "Structure X", "departement_id": self.dep.id}
+        payload.update(extra)
+        return self.client.post(reverse("admin-organization"), data=payload, content_type="application/json")
+
+    def test_structure_hierarchy_rules(self):
+        self.dep = Departement.objects.create(code="dp-h", nom="Dépt H", population=1)
+        other = Departement.objects.create(code="dp-o", nom="Dépt O", population=1)
+        zone = ZoneSanitaire.objects.create(code="zs-h", nom="ZS H", departement=self.dep)
+        foreign_zone = ZoneSanitaire.objects.create(code="zs-o", nom="ZS O", departement=other)
+
+        # Un centre de santé du niveau périphérique exige une zone sanitaire.
+        self.assertEqual(self._create_structure(type_structure="CSCOM").status_code, 400)
+        # La zone doit appartenir au département.
+        self.assertEqual(
+            self._create_structure(type_structure="CSCOM", zone_sanitaire_id=foreign_zone.id).status_code, 400
+        )
+        self.assertEqual(self._create_structure(type_structure="INCONNU").status_code, 400)
+        ok = self._create_structure(type_structure="CSCOM", zone_sanitaire_id=zone.id)
+        self.assertEqual(ok.status_code, 201)
+        self.assertEqual(ok.json()["item"]["niveau"], "peripherique")
+        # Une DDS se rattache au département, sans zone.
+        dds = self._create_structure(code="dds-h", type_structure="DIRECTION")
+        self.assertEqual(dds.status_code, 201)
+        self.assertEqual(dds.json()["item"]["niveau"], "intermediaire")
+
+    def test_legacy_structure_without_zone_can_still_be_deactivated(self):
+        dep = Departement.objects.create(code="dp-l", nom="Dépt L", population=1)
+        legacy = Structure.objects.create(code="leg", nom="Ancien CS", type_structure="CS", departement=dep)
+        response = self.client.patch(
+            reverse("admin-organization-detail", args=["structure", legacy.id]),
+            data={"actif": False},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+
 class AgentRegistryTests(TestCase):
     def setUp(self):
         # create admin and campagne
