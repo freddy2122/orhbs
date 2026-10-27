@@ -155,3 +155,47 @@ class DeclarationWriteAccessTests(TestCase):
         self._login("col-ok", UserProfile.Role.COLLECTEUR, UserProfile.Scope.STRUCTURE, structure=self.struct)
         resp = self.client.post(f"/api/collecte/declarations/{self.decl.id}/submit/")
         self.assertEqual(resp.status_code, 200)
+
+
+class MouvementScopeTests(TestCase):
+    """Un collecteur ne peut enregistrer un mouvement que pour un agent de son périmètre."""
+
+    def setUp(self):
+        from api.models import AgentSante, CampagneCollecte
+
+        self.dept = Departement.objects.create(code="md", nom="Dept M", population=1)
+        self.zone = ZoneSanitaire.objects.create(code="md-z", nom="Zone M", departement=self.dept)
+        self.struct_a = Structure.objects.create(code="md-a", nom="A", departement=self.dept, zone_sanitaire=self.zone, type_structure="HZ")
+        self.struct_b = Structure.objects.create(code="md-b", nom="B", departement=self.dept, zone_sanitaire=self.zone, type_structure="HZ")
+        campagne = CampagneCollecte.objects.create(
+            code="cm", libelle="Campagne M", annee=2026, date_debut="2026-01-01", date_fin="2026-12-31"
+        )
+        mk = lambda mat, st: AgentSante.objects.create(
+            campagne=campagne, structure=st, matricule=mat, nom="N", prenom="P", sexe="M", profession="Infirmier"
+        )
+        self.agent_a, self.agent_b = mk("A1", self.struct_a), mk("B1", self.struct_b)
+        user = User.objects.create_user(username="col-mv", password="Phrase-Solide-2026-x")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.COLLECTEUR, scope=UserProfile.Scope.STRUCTURE, structure=self.struct_a)
+        resp = self.client.post(
+            "/api/auth/login/",
+            data={"username": "col-mv", "password": "Phrase-Solide-2026-x"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200)
+
+    def _post(self, agent_id, **extra):
+        payload = {"agent": agent_id, "type_mouvement": "deces", "date_effet": "2026-05-01"}
+        payload.update(extra)
+        return self.client.post("/api/admin/mouvements/", data=payload, content_type="application/json")
+
+    def test_cannot_move_or_archive_agent_of_another_structure(self):
+        resp = self._post(self.agent_b.id)
+        self.assertEqual(resp.status_code, 404)
+        self.agent_b.refresh_from_db()
+        self.assertTrue(self.agent_b.actif)
+
+    def test_can_record_movement_for_own_agent(self):
+        resp = self._post(self.agent_a.id, type_mouvement="mutation", structure_destination=self.struct_b.id)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.agent_a.refresh_from_db()
+        self.assertEqual(self.agent_a.structure_id, self.struct_b.id)

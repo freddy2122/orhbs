@@ -431,11 +431,19 @@ class MouvementAgentListView(APIView):
         ):
             return Response({"detail": "Non autorisé."}, status=403)
 
+        from api.permissions import agents_queryset_for_user
+
         data = request.data.copy() if hasattr(request.data, "copy") else dict(request.data)
-        if not data.get("structure_origine") and data.get("agent"):
-            agent = AgentSante.objects.filter(pk=data.get("agent")).first()
-            if agent:
-                data["structure_origine"] = agent.structure_id
+        agent_id = data.get("agent")
+        agent = (
+            agents_queryset_for_user(request.user, AgentSante.objects.all()).filter(pk=agent_id).first()
+            if str(agent_id or "").isdigit()
+            else None
+        )
+        if not agent:
+            return Response({"detail": "Agent introuvable dans votre périmètre."}, status=404)
+        if not data.get("structure_origine"):
+            data["structure_origine"] = agent.structure_id
         serializer = MouvementAgentSerializer(data=data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
