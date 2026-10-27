@@ -855,6 +855,14 @@ class Command(BaseCommand):
             ),
             (
                 ContenuEditorial.TypeContenu.FORMATION,
+                "IRSP-CAQ — Institut Régional de Santé Publique",
+                "Institut régional de formation en santé publique, situé à Ouidah.",
+                "institut",
+                "Ouidah",
+                "IRSP-CAQ",
+            ),
+            (
+                ContenuEditorial.TypeContenu.FORMATION,
                 "Faculté de médecine de Parakou",
                 "Formation médicale pour le nord du pays, stages au CHUD Borgou-Alibori.",
                 "universite",
