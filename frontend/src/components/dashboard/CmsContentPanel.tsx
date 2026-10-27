@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { EmptyState } from '../ui/EmptyState'
 import { Spinner } from '../ui/Spinner'
+import { ContentPreview } from './ContentPreview'
 import { WorkflowBadge, WorkflowControls, WorkflowTrail } from './WorkflowControls'
 import type { WorkflowAction } from '../../lib/editorial-workflow'
 import {
@@ -211,6 +212,22 @@ export function CmsContentPanel() {
                     {item.fichier_url ? ' · PDF joint' : ' · sans PDF'}
                   </p>
                   <WorkflowTrail item={item} />
+                  <div className="mt-2">
+                    <ContentPreview
+                      defaultOpen={false}
+                      preview={{
+                        titre: item.titre,
+                        resume: item.resume,
+                        contenu: item.contenu,
+                        image_url: item.image_url,
+                        meta: [item.type_publication_label, String(item.annee ?? '—'), item.auteur_full].filter(Boolean),
+                        keywords: item.mot_cles ? item.mot_cles.split(',').map((k) => k.trim()).filter(Boolean) : [],
+                        pdf: item.fichier_url
+                          ? { path: `/api/cms/publications/${item.id}/download/`, filename: `${item.slug}.pdf` }
+                          : null,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">

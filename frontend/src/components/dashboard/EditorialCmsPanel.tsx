@@ -3,6 +3,7 @@ import { FileText } from 'lucide-react'
 import { EmptyState } from '../ui/EmptyState'
 import { Spinner } from '../ui/Spinner'
 import { NewsletterPanel } from './NewsletterPanel'
+import { ContentPreview } from './ContentPreview'
 import { WorkflowBadge, WorkflowControls, WorkflowTrail } from './WorkflowControls'
 import type { WorkflowAction } from '../../lib/editorial-workflow'
 import {
@@ -288,6 +289,24 @@ export function EditorialCmsPanel({ canManageDirectory = false }: { canManageDir
                   </div>
                   <p className="text-xs text-dark-text/50">{item.categorie || item.type_contenu_label}</p>
                   <WorkflowTrail item={item} />
+                  <div className="mt-2">
+                    <ContentPreview
+                      preview={{
+                        titre: item.titre,
+                        resume: item.resume,
+                        contenu: item.contenu,
+                        image_url: item.image_url,
+                        meta: [
+                          item.type_contenu_label,
+                          item.categorie,
+                          item.lieu,
+                          item.organisation,
+                          item.date_debut ? `Du ${item.date_debut}${item.date_fin ? ` au ${item.date_fin}` : ''}` : '',
+                          item.auteur_full,
+                        ].filter(Boolean),
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
