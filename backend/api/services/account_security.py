@@ -184,10 +184,12 @@ def send_activation_email(user, invitation=True):
 
 
 def user_from_activation_token(uid, token):
+    if not isinstance(uid, str) or not isinstance(token, str) or not uid or not token:
+        return None
     try:
         user = User.objects.get(pk=force_str(urlsafe_base64_decode(uid)))
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+    except (TypeError, ValueError, OverflowError, UnicodeError, User.DoesNotExist):
         return None
-    if not user.is_active or not default_token_generator.check_token(user, token or ""):
+    if not user.is_active or not default_token_generator.check_token(user, token):
         return None
     return user

@@ -150,6 +150,11 @@ class AccountSecurityTests(TestCase):
         self.assertEqual(resp.json()["detail"], "Lien invalide ou expiré.")
         self.assertTrue(user.has_usable_password())
 
+    def test_malformed_activation_payloads_never_crash(self):
+        for payload in ({}, {"uid": None, "token": None}, {"uid": 5, "token": 7}, {"uid": "%%%", "token": "x"}, {"uid": "\u00e9", "token": "x", "password": GOOD}):
+            resp = self.post("auth-password-set", payload)
+            self.assertEqual(resp.status_code, 400, payload)
+
     def test_creating_user_without_email_or_password_is_refused(self):
         make_user("adm3", role=UserProfile.Role.ADMIN, password=GOOD)
         self.login("adm3", GOOD)
