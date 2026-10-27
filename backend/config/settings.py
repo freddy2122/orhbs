@@ -228,7 +228,6 @@ if DEBUG and not CSRF_TRUSTED_ORIGINS:
 elif not DEBUG:
     extra = [
         "https://orhbs.vercel.app",
-        "https://orhsb.vercel.app",
     ]
     public_front = os.getenv("FRONTEND_PUBLIC_URL", "").strip().rstrip("/")
     if public_front.startswith("http"):
