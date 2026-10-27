@@ -96,7 +96,7 @@ class CmsPublicAndOpsTests(TestCase):
         self.assertNotIn("publish", body["actions_disponibles"])
         pk, slug = body["id"], body["slug"]
 
-        self.assertEqual(self.client.get(reverse("public-contenus")).json(), [])
+        self.assertEqual(self.client.get(reverse("public-contenus") + "?type=actualite").json(), [])
         self.assertEqual(self._workflow(pk, "publish").status_code, 403)
 
         submitted = self._workflow(pk, "submit")
@@ -144,7 +144,7 @@ class CmsPublicAndOpsTests(TestCase):
         )
         self.assertEqual(locked.status_code, 409)
         self.assertEqual(self._workflow(pk, "unpublish").json()["statut"], "brouillon")
-        self.assertEqual(self.client.get(reverse("public-contenus")).json(), [])
+        self.assertEqual(self.client.get(reverse("public-contenus") + "?type=actualite").json(), [])
 
     def test_four_eyes_rule_blocks_self_publication(self):
         self._login("ops_coord")

@@ -847,6 +847,14 @@ class Command(BaseCommand):
             ),
             (
                 ContenuEditorial.TypeContenu.FORMATION,
+                "Institut de Formation en Soins Infirmiers et Obstétricaux (IFSIO)",
+                "Formation en soins infirmiers et obstétricaux, située à Parakou.",
+                "institut",
+                "Parakou",
+                "IFSIO",
+            ),
+            (
+                ContenuEditorial.TypeContenu.FORMATION,
                 "Faculté de médecine de Parakou",
                 "Formation médicale pour le nord du pays, stages au CHUD Borgou-Alibori.",
                 "universite",
