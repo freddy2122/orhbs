@@ -108,3 +108,50 @@ class PermissionsTestCase(TestCase):
         r = R()
         r.user = user
         return r
+
+
+class DeclarationWriteAccessTests(TestCase):
+    """Les rôles en lecture seule ne doivent ni modifier ni soumettre une déclaration."""
+
+    def setUp(self):
+        from api.models import CampagneCollecte
+
+        self.dept = Departement.objects.create(code="wd", nom="Dept W", population=1)
+        self.zone = ZoneSanitaire.objects.create(code="wd-z", nom="Zone W", departement=self.dept)
+        self.struct = Structure.objects.create(
+            code="wd-s", nom="Struct W", departement=self.dept, zone_sanitaire=self.zone, type_structure="HZ"
+        )
+        campagne = CampagneCollecte.objects.create(
+            code="cw", libelle="Campagne W", annee=2026, date_debut="2026-01-01", date_fin="2026-12-31"
+        )
+        self.decl = DeclarationRHS.objects.create(campagne=campagne, structure=self.struct, effectif_total=3)
+
+    def _login(self, username, role, scope=UserProfile.Scope.NATIONAL, **extra):
+        user = User.objects.create_user(username=username, password="Phrase-Solide-2026-x")
+        UserProfile.objects.create(user=user, role=role, scope=scope, **extra)
+        resp = self.client.post(
+            "/api/auth/login/",
+            data={"username": username, "password": "Phrase-Solide-2026-x"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200)
+
+    def test_read_only_roles_cannot_submit_or_patch(self):
+        for role in (UserProfile.Role.DECIDEUR, UserProfile.Role.ANALYSTE, UserProfile.Role.PARTENAIRE):
+            self._login(f"ro-{role}", role)
+            submit = self.client.post(f"/api/collecte/declarations/{self.decl.id}/submit/")
+            patch = self.client.patch(
+                f"/api/collecte/declarations/{self.decl.id}/",
+                data={"effectif_total": 999},
+                content_type="application/json",
+            )
+            self.assertEqual(submit.status_code, 403, role)
+            self.assertEqual(patch.status_code, 403, role)
+        self.decl.refresh_from_db()
+        self.assertEqual(self.decl.statut, DeclarationRHS.Statut.BROUILLON)
+        self.assertEqual(self.decl.effectif_total, 3)
+
+    def test_collector_in_scope_can_still_submit(self):
+        self._login("col-ok", UserProfile.Role.COLLECTEUR, UserProfile.Scope.STRUCTURE, structure=self.struct)
+        resp = self.client.post(f"/api/collecte/declarations/{self.decl.id}/submit/")
+        self.assertEqual(resp.status_code, 200)

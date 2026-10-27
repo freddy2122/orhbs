@@ -116,7 +116,7 @@ class DeclarationListCreateView(APIView):
 
 
 class DeclarationDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCollectorOrCoordinatorOrAdmin]
 
     def get_object(self, request, pk):
         return declarations_queryset_for_user(request.user).filter(pk=pk).first()
@@ -143,7 +143,7 @@ class DeclarationDetailView(APIView):
 
 
 class DeclarationSubmitView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCollectorOrCoordinatorOrAdmin]
 
     def post(self, request, pk):
         declaration = declarations_queryset_for_user(request.user).filter(pk=pk).first()
