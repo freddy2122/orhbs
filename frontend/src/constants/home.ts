@@ -113,6 +113,7 @@ export const PARTNERS: Partner[] = [
   { id: 'unicef', name: 'UNICEF', abbr: 'UNICEF', logo: LOGOS.unicef },
   { id: 'enabel', name: 'Enabel — Agence belge de développement', abbr: 'Enabel', logo: LOGOS.enabel },
   { id: 'fhi360', name: 'FHI 360', abbr: 'FHI 360', logo: LOGOS.fhi360 },
+  { id: 'fonds-mondial', name: 'Le Fonds mondial', abbr: 'FM', logo: LOGOS.fondsMondial },
   { id: 'instad', name: 'Institut National de la Statistique', abbr: 'INStaD', logo: LOGOS.instad },
   { id: 'snis', name: 'Système National d\'Information Sanitaire', abbr: 'SNIS', logo: LOGOS.snis },
   { id: 'ordre', name: 'Ordres professionnels de santé', abbr: 'OPS', logo: LOGOS.ordres },

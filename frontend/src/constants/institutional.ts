@@ -29,6 +29,7 @@ export const LOGOS = {
   unicef: '/images/logos/unicef.svg',
   enabel: '/images/logos/enabel.png',
   fhi360: '/images/logos/fhi360.png',
+  fondsMondial: '/images/logos/fonds-mondial.png',
   instad: '/images/logos/instad.jpg',
   snis: '/images/logos/snis.svg',
   ordres: '/images/logos/ordres.svg',
