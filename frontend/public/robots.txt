@@ -6,4 +6,4 @@ Disallow: /connexion
 Disallow: /activation
 Disallow: /mot-de-passe-oublie
 
-Sitemap: https://orhsb.vercel.app/sitemap.xml
+Sitemap: https://orhbs.vercel.app/sitemap.xml
