@@ -847,14 +847,6 @@ class Command(BaseCommand):
             ),
             (
                 ContenuEditorial.TypeContenu.FORMATION,
-                "École nationale de formation des techniciens supérieurs en santé",
-                "Filières laboratoire, imagerie et maintenance biomédicale.",
-                "ecole",
-                "Porto-Novo",
-                "Ministère de la Santé",
-            ),
-            (
-                ContenuEditorial.TypeContenu.FORMATION,
                 "Faculté de médecine de Parakou",
                 "Formation médicale pour le nord du pays, stages au CHUD Borgou-Alibori.",
                 "universite",
